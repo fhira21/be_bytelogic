@@ -1,36 +1,85 @@
 const express = require("express");
 const { createManager, getAllManager, getManagerById } = require("../controllers/managerController");
+const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
 /**
  * @swagger
+ * tags:
+ *   name: Manager
+ *   description: Manajemen data manajer
+ */
+
+/**
+ * @swagger
  * /api/manager:
  *   post:
- *     summary: Tambah data manajer
+ *     summary: Tambah data manajer (Hanya Admin)
  *     tags: [Manager]
- *     operationId: createManager
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nama_lengkap:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               nomor_telepon:
+ *                 type: string
+ *               alamat:
+ *                 type: string
+ *               foto_profile:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Data manajer berhasil ditambahkan
+ *       403:
+ *         description: Akses ditolak (Hanya Admin)
  */
-router.post("/", createManager);
+router.post("/", verifyToken, verifyRole(["manager/admin"]), createManager);
 
 /**
  * @swagger
  * /api/manager:
  *   get:
- *     summary: Ambil semua data manajer
+ *     summary: Ambil semua data manajer (Hanya Admin & Manager)
  *     tags: [Manager]
- *     operationId: getManager
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Data manajer berhasil diambil
+ *       403:
+ *         description: Akses ditolak (Hanya Admin & Manager)
  */
-router.get("/", getAllManager);
+router.get("/", verifyToken, verifyRole(["manager/admin"]), getAllManager);
 
 /**
  * @swagger
  * /api/manager/{id}:
  *   get:
- *     summary: Ambil data manajer berdasarkan ID
+ *     summary: Ambil data manajer berdasarkan ID (Hanya Admin & Manager)
  *     tags: [Manager]
- *     operationId: getManagerId
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *     responses:
+ *       200:
+ *         description: Data manajer berhasil diambil
+ *       403:
+ *         description: Akses ditolak (Hanya Admin & Manager)
  */
-router.get("/:id", getManagerById);
+router.get("/:id", verifyToken, verifyRole(["manager/admin"]), getManagerById);
 
 module.exports = router;

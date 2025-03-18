@@ -10,30 +10,6 @@ require("dotenv").config();
  *   description: Manajemen pengguna (Register, Login, Get User)
  */
 
-/**
- * @swagger
- * /api/users/register:
- *   post:
- *     summary: Register pengguna baru
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *               role:
- *                 type: string
- *                 enum: ["karyawan", "manager", "client"]
- *     responses:
- *       201:
- *         description: Pengguna berhasil terdaftar
- */
 exports.registerUser = async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -46,27 +22,7 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-/**
- * @swagger
- * /api/users/login:
- *   post:
- *     summary: Login pengguna
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Berhasil login
- */
+
 exports.loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -86,22 +42,7 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-/**
- * @swagger
- * /api/users/{id}:
- *   get:
- *     summary: Dapatkan detail pengguna berdasarkan ID
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Data pengguna berhasil diambil
- */
+
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);

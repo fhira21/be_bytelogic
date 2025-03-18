@@ -8,6 +8,7 @@ const karyawanRoutes = require("./routes/karyawanRoutes");
 const managerRoutes = require("./routes/managerRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const path = require("path");
 
 const app = express();
 app.use(express.json());
@@ -26,6 +27,7 @@ app.use("/api/karyawan", karyawanRoutes);
 app.use("/api/manager", managerRoutes);
 app.use("/api/client", clientRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Menjalankan server
 const PORT = process.env.PORT || 5000;

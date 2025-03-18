@@ -7,109 +7,63 @@ const Client = require("../models/Client");
  *   description: Manajemen data klien
  */
 
-/**
- * @swagger
- * /api/client:
- *   post:
- *     summary: Tambah data klien baru
- *     tags: [Client]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
- *               full_name:
- *                 type: string
- *               email:
- *                 type: string
- *               phone:
- *                 type: string
- *               company_name:
- *                 type: string
- *               address:
- *                 type: string
- *     responses:
- *       201:
- *         description: Data klien berhasil ditambahkan
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 client:
- *                   type: object
- */
+// ✅ Tambah validasi input dan pengecekan email unik
 exports.createClient = async (req, res) => {
   try {
-    const client = new Client(req.body);
+    const { user_id, nama_lengkap, email, nomor_telepon, alamat, foto_profile } = req.body;
+
+    // Cek apakah email sudah terdaftar
+    const existingClient = await Client.findOne({ email });
+    if (existingClient) {
+      return res.status(400).json({ message: "Email sudah terdaftar sebagai klien lain" });
+    }
+
+    // Buat klien baru
+    const client = new Client({ user_id, nama_lengkap, email, nomor_telepon, alamat, foto_profile });
     await client.save();
-    res.status(201).json({ message: "Klien berhasil ditambahkan", client });
+
+    res.status(201).json({ message: "Klien berhasil ditambahkan", data: client });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error menambahkan klien:", error.message);
+    res.status(500).json({ message: "Gagal menambahkan klien", error: error.message });
   }
 };
 
-/**
- * @swagger
- * /api/client:
- *   get:
- *     summary: Ambil semua data klien
- *     tags: [Client]
- *     responses:
- *       200:
- *         description: Data klien berhasil diambil
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- */
+// ✅ Tambah logging untuk debug
 exports.getAllClient = async (req, res) => {
   try {
     const clients = await Client.find();
-    res.status(200).json(clients);
+
+    if (!clients || clients.length === 0) {
+      return res.status(404).json({ message: "Belum ada data klien" });
+    }
+
+    res.status(200).json({ message: "Data klien berhasil diambil", data: clients });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error mengambil semua klien:", error.message);
+    res.status(500).json({ message: "Gagal mengambil data klien", error: error.message });
   }
 };
 
-/**
- * @swagger
- * /api/client/{id}:
- *   get:
- *     summary: Ambil data klien berdasarkan ID
- *     tags: [Client]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID klien yang ingin diambil
- *     responses:
- *       200:
- *         description: Data klien berhasil diambil
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *       404:
- *         description: Klien tidak ditemukan
- */
-exports.getClientById = async (req, res) => {
+// ✅ Perbaiki error handling untuk ID tidak valid
+exports.getClientByID = async (req, res) => {
   try {
-    const client = await Client.findById(req.params.id); // Perbaiki req.params.Id menjadi req.params.id
-    if (!client) return res.status(404).json({ error: "Klien tidak ditemukan" });
-    res.status(200).json(client);
+    const { id } = req.params;
+
+    // Cek apakah ID valid
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "ID tidak valid" });
+    }
+
+    const client = await Client.findById(id);
+
+    if (!client) {
+      return res.status(404).json({ message: "Klien tidak ditemukan" });
+    }
+
+    res.status(200).json({ message: "Data klien berhasil diambil", data: client });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error mengambil data klien:", error.message);
+    res.status(500).json({ message: "Gagal mengambil data klien", error: error.message });
   }
 };
-

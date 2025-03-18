@@ -1,99 +1,33 @@
 const Karyawan = require("../models/Karyawan");
 
-/**
- * @swagger
- * tags:
- *   name: Karyawan
- *   description: Manajemen data karyawan
- */
-
-/**
- * @swagger
- * /api/karyawan:
- *   post:
- *     summary: Tambah data karyawan baru
- *     tags: [Karyawan]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
- *               full_name:
- *                 type: string
- *               email:
- *                 type: string
- *               phone:
- *                 type: string
- *               birth_date:
- *                 type: string
- *                 format: date
- *               address:
- *                 type: string
- *               education:
- *                 type: string
- *               skills:
- *                 type: array
- *                 items:
- *                   type: string
- *     responses:
- *       201:
- *         description: Data karyawan berhasil ditambahkan
- */
-exports.createKaryawan = async (req, res) => {
-  try {
-    const karyawan = new Karyawan(req.body);
-    await karyawan.save();
-    res.status(201).json({ message: "Karyawan berhasil ditambahkan", karyawan });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-/**
- * @swagger
- * /api/karyawan:
- *   get:
- *     summary: Ambil semua data karyawan
- *     tags: [Karyawan]
- *     responses:
- *       200:
- *         description: Data karyawan berhasil diambil
- */
+// Ambil semua data karyawan
 exports.getAllKaryawan = async (req, res) => {
   try {
     const karyawan = await Karyawan.find();
     res.status(200).json(karyawan);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Gagal mengambil data karyawan", error: error.message });
   }
 };
 
-/**
- * @swagger
- * /api/karyawan/{id}:
- *   get:
- *     summary: Ambil data karyawan berdasarkan ID
- *     tags: [Karyawan]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Data karyawan berhasil diambil
- */
+// Ambil karyawan berdasarkan ID
 exports.getKaryawanById = async (req, res) => {
   try {
     const karyawan = await Karyawan.findById(req.params.id);
-    if (!karyawan) return res.status(404).json({ error: "Karyawan tidak ditemukan" });
+    if (!karyawan) return res.status(404).json({ message: "Karyawan tidak ditemukan" });
     res.status(200).json(karyawan);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Gagal mengambil data karyawan", error: error.message });
+  }
+};
+
+// Buat karyawan baru
+exports.createKaryawan = async (req, res) => {
+  try {
+    const karyawanBaru = new Karyawan(req.body);
+    await karyawanBaru.save();
+    res.status(201).json(karyawanBaru);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menambahkan karyawan", error: error.message });
   }
 };
