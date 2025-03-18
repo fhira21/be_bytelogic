@@ -1,2 +1,0 @@
-penilaian kinerja karyawan 
-cndkncc

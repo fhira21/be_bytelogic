@@ -10,7 +10,7 @@ const options = {
       description: "Dokumentasi API untuk Sistem Evaluasi kinerja Karyawan Bytelogic",
     },
     servers: [{ url: "http://localhost:5000" }],
-  },
+  }, 
   tags: [
     { name: "Users", description: "User management" },
     { name: "Manager", description: "Project management" },
