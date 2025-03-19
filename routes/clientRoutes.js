@@ -59,7 +59,7 @@ router.post("/", verifyToken, verifyRole("manager/admin", "client"), createClien
  *       403:
  *         description: Akses ditolak (Hanya Admin & Manager)
  */
-router.get("/", verifyToken, verifyRole("manager/admin"), async (req, res) => {
+router.get("/", async (req, res) => {
     try {
         const client = await client.find();
         res.status(200).json(client);
@@ -88,7 +88,7 @@ router.get("/", verifyToken, verifyRole("manager/admin"), async (req, res) => {
  *       403:
  *         description: Akses ditolak
  */
-router.get("/:id", verifyToken, verifyRole("manager/admin", "client"), getClientByID);
+router.get("/:id", getClientByID);
   
 
 module.exports = router;

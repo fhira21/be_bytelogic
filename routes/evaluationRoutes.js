@@ -64,7 +64,7 @@ const router = express.Router();
  *       500:
  *         description: Terjadi kesalahan pada server
  */
-router.post("/", verifyToken,  createEvaluation);
+router.post("/", createEvaluation);
 
 /**
  * @swagger
@@ -80,7 +80,7 @@ router.post("/", verifyToken,  createEvaluation);
  *       500:
  *         description: Terjadi kesalahan pada server
  */
-router.get("/", verifyToken, getAllEvaluations);
+router.get("/", getAllEvaluations);
 
 /**
  * @swagger
@@ -104,6 +104,6 @@ router.get("/", verifyToken, getAllEvaluations);
  *       500:
  *         description: Terjadi kesalahan pada server
  */
-router.get("/:id", verifyToken, verifyRole(["manager", "client"]), getEvaluationById);
+router.get("/:id", getEvaluationById);
 
 module.exports = router;

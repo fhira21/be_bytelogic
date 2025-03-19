@@ -42,7 +42,7 @@ const router = express.Router();
  *       403:
  *         description: Akses ditolak (Hanya Admin)
  */
-router.post("/", verifyToken, verifyRole(["manager/admin"]), createManager);
+router.post("/", createManager);
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ router.post("/", verifyToken, verifyRole(["manager/admin"]), createManager);
  *       403:
  *         description: Akses ditolak (Hanya Admin & Manager)
  */
-router.get("/", verifyToken, verifyRole(["manager/admin"]), getAllManager);
+router.get("/", getAllManager);
 
 /**
  * @swagger
@@ -80,6 +80,6 @@ router.get("/", verifyToken, verifyRole(["manager/admin"]), getAllManager);
  *       403:
  *         description: Akses ditolak (Hanya Admin & Manager)
  */
-router.get("/:id", verifyToken, verifyRole(["manager/admin"]), getManagerById);
+router.get("/:id", getManagerById);
 
 module.exports = router;
