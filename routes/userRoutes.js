@@ -15,6 +15,17 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "john_doe"
+ *               password:
+ *                 type: string
+ *                 example: "password123"
+ *               role:
+ *                 type: string
+ *                 enum: ["karyawan", "manager", "client"]
+ *                 example: "manager"
  *     responses:
  *       201:
  *         description: Pengguna berhasil terdaftar
@@ -33,6 +44,13 @@ router.post("/register", registerUser);
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "john_doe"
+ *               password:
+ *                 type: string
+ *                 example: "password123"
  *     responses:
  *       200:
  *         description: Berhasil login
@@ -51,6 +69,7 @@ router.post("/login", loginUser);
  *         required: true
  *         schema:
  *           type: string
+ *           example: "60c72b2f9b1d8e5a7c8d24e3"
  *     responses:
  *       200:
  *         description: Data pengguna berhasil diambil
@@ -69,6 +88,13 @@ router.get("/:id", getUserById);
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "john_doe"
+ *               newPassword:
+ *                 type: string
+ *                 example: "newpassword123"
  *     responses:
  *       200:
  *         description: Password berhasil direset
@@ -87,6 +113,7 @@ router.post("/reset-password", resetPassword);
  *         required: true
  *         schema:
  *           type: string
+ *           example: "60c72b2f9b1d8e5a7c8d24e3"
  *     responses:
  *       200:
  *         description: Pengguna berhasil dihapus

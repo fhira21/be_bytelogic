@@ -25,8 +25,8 @@ swaggerDocs(app);
 // Menggunakan Routes
 app.use("/api/users", userRoutes);
 app.use("/api/karyawan", karyawanRoutes);
-app.use("/api/manager", managerRoutes);
-app.use("/api/client", clientRoutes);
+app.use("/api/managers", managerRoutes);
+app.use("/api/clients", clientRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/evaluations", evaluationRoutes)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

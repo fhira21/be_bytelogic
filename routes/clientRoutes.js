@@ -5,7 +5,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/client:
+ * /api/clients:
  *   post:
  *     summary: Tambah data klien baru
  *     tags: [Clients]
@@ -15,6 +15,19 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               nama_lengkap:
+ *                 type: string
+ *                 example: "John Doe"
+ *               email:
+ *                 type: string
+ *                 example: "johndoe@example.com"
+ *               nomor_telepon:
+ *                 type: string
+ *                 example: "08123456789"
+ *               alamat:
+ *                 type: string
+ *                 example: "Jl. Contoh No. 123"
  *     responses:
  *       201:
  *         description: Data klien berhasil ditambahkan
@@ -23,7 +36,7 @@ router.post("/", createClient);
 
 /**
  * @swagger
- * /api/client:
+ * /api/clients:
  *   get:
  *     summary: Ambil semua data klien
  *     tags: [Clients]
@@ -35,16 +48,17 @@ router.get("/", getAllClients);
 
 /**
  * @swagger
- * /api/client/{id}:
+ * /api/clients/{id}:
  *   get:
  *     summary: Ambil data klien berdasarkan ID
  *     tags: [Clients]
  *     parameters:
- *        - in: path
- *          name: id
- *          required: true
- *          schema:
- *            type: string
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "60c72b2f9b1d8e5a7c8d24e3"
  *     responses:
  *       200:
  *         description: Data klien berhasil diambil
@@ -53,7 +67,7 @@ router.get("/:id", getClientById);
 
 /**
  * @swagger
- * /api/client/{id}:
+ * /api/clients/{id}:
  *   put:
  *     summary: Perbarui data klien berdasarkan ID
  *     tags: [Clients]
@@ -63,6 +77,10 @@ router.get("/:id", getClientById);
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               alamat:
+ *                 type: string
+ *                 example: "Jl. Baru No. 456"
  *     responses:
  *       200:
  *         description: Data klien berhasil diperbarui
@@ -71,16 +89,17 @@ router.put("/:id", updateClient);
 
 /**
  * @swagger
- * /api/client/{id}:
+ * /api/clients/{id}:
  *   delete:
  *     summary: Hapus data klien berdasarkan ID
  *     tags: [Clients]
  *     parameters:
- *        - in: path
- *          name: id
- *          required: true
- *          schema:
- *            type: string
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "60c72b2f9b1d8e5a7c8d24e3"
  *     responses:
  *       200:
  *         description: Data klien berhasil dihapus
