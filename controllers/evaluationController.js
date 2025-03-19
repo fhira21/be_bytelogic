@@ -1,50 +1,49 @@
 const Evaluation = require("../models/Evaluation");
-const Project = require("../models/Project");
 
-// ✅ Client: Berikan Evaluasi ke Karyawan
+// Menambahkan evaluasi
 exports.createEvaluation = async (req, res) => {
-  if (req.user.role !== "client") {
-    return res.status(403).json({ message: "Hanya Klien yang dapat memberikan evaluasi." });
-  }
+    try {
+        const { project_id, client_id, employee_id, scores, comments } = req.body;
 
-  try {
-    const { projectId, employeeId, communication, discipline, technicalSkill, comments } = req.body;
-    
-    const project = await Project.findById(projectId);
-    if (!project || project.client.toString() !== req.user.userId) {
-      return res.status(403).json({ message: "Anda tidak memiliki akses ke proyek ini." });
+        // Validasi input
+        if (!project_id || !client_id || !employee_id || !scores) {
+            return res.status(400).json({ message: "Semua field wajib diisi" });
+        }
+
+        const newEvaluation = new Evaluation({
+            project_id,
+            client_id,
+            employee_id,
+            scores,
+            comments
+        });
+        
+        await newEvaluation.save();
+        res.status(201).json({ message: "Evaluasi berhasil ditambahkan", data: newEvaluation });
+    } catch (error) {
+        res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
     }
-
-    const evaluation = await Evaluation.create({
-      project: projectId,
-      client: req.user.userId,
-      employee: employeeId,
-      communication,
-      discipline,
-      technicalSkill,
-      comments
-    });
-
-    res.status(201).json({ message: "Evaluasi berhasil disimpan", evaluation });
-  } catch (error) {
-    res.status(500).json({ message: "Terjadi kesalahan", error });
-  }
 };
 
-// ✅ Manager & Karyawan: Lihat Evaluasi
-exports.getEvaluations = async (req, res) => {
-  try {
-    let evaluations;
-    if (req.user.role === "employee") {
-      evaluations = await Evaluation.find({ employee: req.user.userId }).populate("project", "title");
-    } else if (req.user.role === "manager") {
-      evaluations = await Evaluation.find().populate("project", "title").populate("employee", "name");
-    } else {
-      return res.status(403).json({ message: "Akses tidak diizinkan" });
+// Mendapatkan semua evaluasi
+exports.getAllEvaluations = async (req, res) => {
+    try {
+        const evaluations = await Evaluation.find().populate("project_id client_id employee_id", "name");
+        res.status(200).json(evaluations);
+    } catch (error) {
+        res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
     }
+};
 
-    res.status(200).json(evaluations);
-  } catch (error) {
-    res.status(500).json({ message: "Gagal mengambil data evaluasi", error });
-  }
+// Mendapatkan evaluasi berdasarkan ID
+exports.getEvaluationById = async (req, res) => {
+    try {
+        const evaluation = await Evaluation.findById(req.params.id).populate("project_id client_id employee_id", "name");
+        if (!evaluation) {
+            return res.status(404).json({ message: "Evaluasi tidak ditemukan" });
+        }
+        res.status(200).json(evaluation);
+    } catch (error) {
+        res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+    }
 };

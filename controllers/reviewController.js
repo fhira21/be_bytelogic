@@ -1,61 +1,33 @@
-const Review = require("../models/CompanyReview");
+const Review = require("../models/Review");
 
-/**
- * @swagger
- * tags:
- *   name: Reviews
- *   description: Manajemen Review Perusahaan
- */
-
-/**
- * @swagger
- * /api/reviews:
- *   post:
- *     summary: Tambahkan review perusahaan
- *     tags: [Reviews]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               client_id:
- *                 type: string
- *               rating:
- *                 type: number
- *               review:
- *                 type: string
- *     responses:
- *       201:
- *         description: Review berhasil ditambahkan
- */
-exports.createReview = async (req, res) => {
+const createReview = async (req, res) => {
   try {
-    const { client_id, rating, review } = req.body;
-    const newReview = new Review({ client_id, rating, review });
+    const { review, client_id, rating } = req.body;
+
+    if (!review || !client_id || !rating) {
+      return res.status(400).json({ message: "Semua field (review, client_id, rating) harus diisi" });
+    }
+
+    const newReview = new Review({ review, client_id, rating });
     await newReview.save();
-    res.status(201).json({ message: "Review added successfully", newReview });
+
+    res.status(201).json({ message: "Review berhasil ditambahkan", newReview });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * @swagger
- * /api/reviews:
- *   get:
- *     summary: Ambil semua review perusahaan
- *     tags: [Reviews]
- *     responses:
- *       200:
- *         description: Review berhasil diambil
- */
-exports.getAllReviews = async (req, res) => {
+const getAllReviews = async (req, res) => {
   try {
-    const reviews = await Review.find().populate("client_id", "full_name email");
+    const reviews = await Review.find().populate("client_id", "name"); // Mengambil nama klien juga
     res.status(200).json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+// ✅ Pastikan kedua fungsi ini diekspor dengan benar
+module.exports = {
+  createReview,
+  getAllReviews,
 };

@@ -43,7 +43,7 @@ const router = express.Router();
  *       403:
  *         description: Akses ditolak (Hanya Manager/Admin)
  */
-router.post("/", verifyToken, verifyRole(["manager/admin", "client"]), createClient);
+router.post("/", verifyToken, verifyRole("manager/admin", "client"), createClient);
 
 /**
  * @swagger
@@ -59,7 +59,7 @@ router.post("/", verifyToken, verifyRole(["manager/admin", "client"]), createCli
  *       403:
  *         description: Akses ditolak (Hanya Admin & Manager)
  */
-router.get("/", verifyToken, verifyRole(["manager/admin"]), async (req, res) => {
+router.get("/", verifyToken, verifyRole("manager/admin"), async (req, res) => {
     try {
         const client = await client.find();
         res.status(200).json(client);
@@ -88,7 +88,7 @@ router.get("/", verifyToken, verifyRole(["manager/admin"]), async (req, res) => 
  *       403:
  *         description: Akses ditolak
  */
-router.get("/:id", verifyToken, verifyRole(["manager/admin", "client"]), getClientByID);
+router.get("/:id", verifyToken, verifyRole("manager/admin", "client"), getClientByID);
   
 
 module.exports = router;
