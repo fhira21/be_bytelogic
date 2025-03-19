@@ -1,81 +1,44 @@
 const express = require("express");
-const { createClient, getAllClient, getClientByID } = require("../controllers/clientController");
-const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
-const router = express.Router();
+const { createClient, getAllClients, getClientById, updateClient, deleteClient } = require("../controllers/clientController");
 
-/**
- * @swagger
- * tags:
- *   name: Clients
- *   description: Manajemen data klien
- */
+const router = express.Router();
 
 /**
  * @swagger
  * /api/client:
  *   post:
- *     summary: Tambah data klien baru (Hanya bisa dilakukan oleh Manager/Admin)
+ *     summary: Tambah data klien baru
  *     tags: [Clients]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             properties:
- *               user_id:
- *                 type: string
- *               nama_lengkap:
- *                 type: string
- *               email:
- *                 type: string
- *               nomor_telepon:
- *                 type: string
- *               alamat:
- *                 type: string
- *               foto_profile:
- *                 type: string
  *     responses:
  *       201:
  *         description: Data klien berhasil ditambahkan
- *       403:
- *         description: Akses ditolak (Hanya Manager/Admin)
  */
-router.post("/", verifyToken, verifyRole("manager/admin", "client"), createClient);
+router.post("/", createClient);
 
 /**
  * @swagger
  * /api/client:
  *   get:
- *     summary: Ambil semua data klien (Hanya Admin & Manager)
+ *     summary: Ambil semua data klien
  *     tags: [Clients]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Data klien berhasil diambil
- *       403:
- *         description: Akses ditolak (Hanya Admin & Manager)
  */
-router.get("/", async (req, res) => {
-    try {
-        const client = await client.find();
-        res.status(200).json(client);
-    } catch (error) {
-        res.status(500).json({ message: "Gagal mengambil data klien", error: error.message });
-    }
-});
+router.get("/", getAllClients);
 
 /**
  * @swagger
  * /api/client/{id}:
  *   get:
- *     summary: Ambil data klien berdasarkan ID (Admin, Manager, atau Client itu sendiri)
+ *     summary: Ambil data klien berdasarkan ID
  *     tags: [Clients]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *        - in: path
  *          name: id
@@ -85,10 +48,43 @@ router.get("/", async (req, res) => {
  *     responses:
  *       200:
  *         description: Data klien berhasil diambil
- *       403:
- *         description: Akses ditolak
  */
-router.get("/:id", getClientByID);
-  
+router.get("/:id", getClientById);
+
+/**
+ * @swagger
+ * /api/client/{id}:
+ *   put:
+ *     summary: Perbarui data klien berdasarkan ID
+ *     tags: [Clients]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Data klien berhasil diperbarui
+ */
+router.put("/:id", updateClient);
+
+/**
+ * @swagger
+ * /api/client/{id}:
+ *   delete:
+ *     summary: Hapus data klien berdasarkan ID
+ *     tags: [Clients]
+ *     parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *     responses:
+ *       200:
+ *         description: Data klien berhasil dihapus
+ */
+router.delete("/:id", deleteClient);
 
 module.exports = router;

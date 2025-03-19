@@ -1,14 +1,7 @@
 const express = require("express");
-const { registerUser, loginUser, getUserById } = require("../controllers/userController");
+const { registerUser, loginUser, getUserById, resetPassword, deleteUser } = require("../controllers/userController");
 
 const router = express.Router();
-
-/**
- * @swagger
- * tags:
- *   name: Users
- *   description: Manajemen pengguna (Register, Login, Get User)
- */
 
 /**
  * @swagger
@@ -22,14 +15,6 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *               role:
- *                 type: string
- *                 enum: ["karyawan", "manager", "client"]
  *     responses:
  *       201:
  *         description: Pengguna berhasil terdaftar
@@ -48,11 +33,6 @@ router.post("/register", registerUser);
  *         application/json:
  *           schema:
  *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
  *     responses:
  *       200:
  *         description: Berhasil login
@@ -76,5 +56,41 @@ router.post("/login", loginUser);
  *         description: Data pengguna berhasil diambil
  */
 router.get("/:id", getUserById);
+
+/**
+ * @swagger
+ * /api/users/reset-password:
+ *   post:
+ *     summary: Reset password pengguna
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Password berhasil direset
+ */
+router.post("/reset-password", resetPassword);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Hapus pengguna berdasarkan ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Pengguna berhasil dihapus
+ */
+router.delete("/:id", deleteUser);
 
 module.exports = router;
