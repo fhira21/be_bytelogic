@@ -21,6 +21,7 @@ exports.verifyToken = (req, res, next) => {
 exports.verifyRole = (roles) => async (req, res, next) => {
   try {
     // Pastikan `req.user` sudah diisi oleh verifyToken
+    console.log(req.user)
     if (!req.user || !req.user.id) {
       return res.status(403).json({ message: "Akses ditolak. User tidak ditemukan." });
     }

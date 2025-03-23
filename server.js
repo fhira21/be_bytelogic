@@ -9,6 +9,7 @@ const managerRoutes = require("./routes/managerRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const evaluationRoutes = require("./routes/evaluationRoutes");
+const projectRoutes = require("./routes/projectRoutes");
 const path = require("path");
 
 const app = express();
@@ -28,7 +29,8 @@ app.use("/api/karyawan", karyawanRoutes);
 app.use("/api/managers", managerRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/reviews", reviewRoutes);
-app.use("/api/evaluations", evaluationRoutes)
+app.use("/api/evaluations", evaluationRoutes);
+app.use("/api/projects", projectRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Menjalankan server

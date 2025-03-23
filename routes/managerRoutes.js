@@ -1,8 +1,16 @@
 // routes/managerRoutes.js
 const express = require("express");
 const { createManager, getAllManagers, getManagerById, updateManager, deleteManager } = require("../controllers/managerController");
+const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
+const { ADMIN_ROLE } = require("../constants/role");
 
 const router = express.Router();
+/**
+ * @swagger
+ * tags:
+ *   name: Managers
+ *   description: Manajemen data Admin/manager
+ */
 
 /**
  * @swagger
@@ -33,7 +41,7 @@ const router = express.Router();
  *       201:
  *         description: Data manajer berhasil ditambahkan
  */
-router.post("/", createManager);
+router.post("/", verifyToken, verifyRole([ADMIN_ROLE]), createManager);
 
 /**
  * @swagger
@@ -45,7 +53,7 @@ router.post("/", createManager);
  *       200:
  *         description: Data manajer berhasil diambil
  */
-router.get("/", getAllManagers);
+router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllManagers);
 
 /**
  * @swagger
@@ -64,7 +72,7 @@ router.get("/", getAllManagers);
  *       200:
  *         description: Data manajer berhasil diambil
  */
-router.get("/:id", getManagerById);
+router.get("/:id", verifyToken, verifyRole([ADMIN_ROLE]), getManagerById);
 
 /**
  * @swagger
@@ -86,7 +94,7 @@ router.get("/:id", getManagerById);
  *       200:
  *         description: Data manajer berhasil diperbarui
  */
-router.put("/:id", updateManager);
+router.put("/:id", verifyToken, verifyRole([ADMIN_ROLE]), updateManager);
 
 /**
  * @swagger
@@ -105,6 +113,6 @@ router.put("/:id", updateManager);
  *       200:
  *         description: Data manajer berhasil dihapus
  */
-router.delete("/:id", deleteManager);
+router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), deleteManager);
 
 module.exports = router;

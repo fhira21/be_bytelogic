@@ -28,6 +28,15 @@ const options = {
         BearerAuth: [],
       },
     ],
+    tags: [
+      { name: "Users", description: "API terkait pengguna (admin, karyawan, klien)" },
+      { name: "Clients", description: "API terkait data klien bytelogic" },
+      { name: "Karyawan", description: "API terkait data karyawan bytelogic" },
+      { name: "Managers", description: "Api terkait data admin atau manager bytelogic" },
+      { name: "Projects", description: "API terkait data Project bytelogic" },
+      { name: "Evaluations", description: "Manajemen data untuk Evaluasi karyawan" },
+      { name: "Reviews", description: "Manajemen data review pengguna terhadap perusahaan" },
+    ],
   },
   apis: ["./routes/*.js"], // Pastikan semua routes dimasukkan
 };

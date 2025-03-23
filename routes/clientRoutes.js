@@ -1,7 +1,16 @@
 const express = require("express");
 const { createClient, getAllClients, getClientById, updateClient, deleteClient } = require("../controllers/clientController");
+const { verifyRole, verifyToken } = require("../middlewares/authMiddleware");
+const { CLIENT_ROLE, ADMIN_ROLE } = require("../constants/role");
 
 const router = express.Router();
+
+/**
+ * @swagger
+ * tags:
+ *   name: Clients
+ *   description: Manajemen data klien
+ */
 
 /**
  * @swagger
@@ -32,7 +41,7 @@ const router = express.Router();
  *       201:
  *         description: Data klien berhasil ditambahkan
  */
-router.post("/", createClient);
+router.post("/", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), createClient);
 
 /**
  * @swagger
@@ -44,7 +53,7 @@ router.post("/", createClient);
  *       200:
  *         description: Data klien berhasil diambil
  */
-router.get("/", getAllClients);
+router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllClients);
 
 /**
  * @swagger
@@ -63,7 +72,7 @@ router.get("/", getAllClients);
  *       200:
  *         description: Data klien berhasil diambil
  */
-router.get("/:id", getClientById);
+router.get("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), getClientById);
 
 /**
  * @swagger
@@ -85,7 +94,7 @@ router.get("/:id", getClientById);
  *       200:
  *         description: Data klien berhasil diperbarui
  */
-router.put("/:id", updateClient);
+router.put("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateClient);
 
 /**
  * @swagger
@@ -104,6 +113,6 @@ router.put("/:id", updateClient);
  *       200:
  *         description: Data klien berhasil dihapus
  */
-router.delete("/:id", deleteClient);
+router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), deleteClient);
 
 module.exports = router;

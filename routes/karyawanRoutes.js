@@ -5,15 +5,16 @@ const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadMiddleware"); // Pastikan path benar
 const multer = require("multer");
 const path = require("path");
+const { CLIENT_ROLE, ADMIN_ROLE } = require("../constants/role");
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "uploads/"); // Folder tempat menyimpan file
+        cb(null, "uploads/"); // Folder tempat menyimpan file
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now() + path.extname(file.originalname)); // Nama file unik
+        cb(null, Date.now() + path.extname(file.originalname)); // Nama file unik
     },
-  });
+});
 
 /**
  * @swagger
@@ -34,7 +35,7 @@ const storage = multer.diskStorage({
  *       200:
  *         description: Berhasil mengambil daftar karyawan
  */
-router.get("/", verifyToken, verifyRole(["manager/admin"]), async (req, res) => {
+router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), async (req, res) => {
     try {
         const karyawan = await Karyawan.find();
         res.status(200).json(karyawan);
@@ -62,7 +63,7 @@ router.get("/", verifyToken, verifyRole(["manager/admin"]), async (req, res) => 
  *       200:
  *         description: Berhasil mengambil data karyawan
  */
-router.get("/:id", verifyToken, async (req, res) => {
+router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), async (req, res) => {
     try {
         const karyawan = await Karyawan.findById(req.params.id);
         if (!karyawan) {
@@ -132,7 +133,7 @@ router.get("/:id", verifyToken, async (req, res) => {
  */
 const uploads = multer({ storage });
 
-router.post("/", verifyToken, verifyRole("manager/admin"), upload.single("foto_profile"), async (req, res) => {
+router.post("/", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), upload.single("foto_profile"), async (req, res) => {
     try {
         const newKaryawan = new Karyawan({
             ...req.body,
@@ -204,7 +205,7 @@ router.post("/", verifyToken, verifyRole("manager/admin"), upload.single("foto_p
  *       200:
  *         description: Data karyawan berhasil diperbarui
  */
-router.put("/:id", verifyToken, verifyRole(["manager/admin"]), async (req, res) => {
+router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), async (req, res) => {
     try {
         const karyawan = await Karyawan.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!karyawan) {
@@ -235,7 +236,7 @@ router.put("/:id", verifyToken, verifyRole(["manager/admin"]), async (req, res) 
  *       200:
  *         description: Karyawan berhasil dihapus
  */
-router.delete("/:id", verifyToken, verifyRole(["manager/admin"]), async (req, res) => {
+router.delete("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), async (req, res) => {
     try {
         const karyawan = await Karyawan.findByIdAndDelete(req.params.id);
         if (!karyawan) {

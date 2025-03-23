@@ -1,8 +1,16 @@
-// routes/reviewRoutes.js
 const express = require("express");
 const { createReview, getAllReviews, getReviewById, updateReview, deleteReview } = require("../controllers/reviewController");
+const { CLIENT_ROLE, ADMIN_ROLE } = require("../constants/role");
+const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
+
+/**
+ * @swagger
+ * tags:
+ *   name: Reviews
+ *   description: Manajemen data review pengguna terhadap perusahaan
+ */
 
 /**
  * @swagger
@@ -30,7 +38,7 @@ const router = express.Router();
  *       201:
  *         description: Review berhasil ditambahkan
  */
-router.post("/", createReview);
+router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createReview);
 
 /**
  * @swagger
@@ -86,7 +94,7 @@ router.get("/:id", getReviewById);
  *       200:
  *         description: Review berhasil diperbarui
  */
-router.put("/:id", updateReview);
+router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateReview);
 
 /**
  * @swagger
@@ -105,6 +113,6 @@ router.put("/:id", updateReview);
  *       200:
  *         description: Review berhasil dihapus
  */
-router.delete("/:id", deleteReview);
+router.delete("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), deleteReview);
 
 module.exports = router;

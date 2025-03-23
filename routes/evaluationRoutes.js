@@ -1,15 +1,26 @@
 // routes/evaluationRoutes.js
 const express = require("express");
 const { createEvaluation, getAllEvaluations, getEvaluationById, updateEvaluation, deleteEvaluation } = require("../controllers/evaluationController");
+const { CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE } = require("../constants/role");
+const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
 /**
  * @swagger
+ * tags:
+ *   name: Evaluations
+ *   description: Manajemen data untuk Evaluasi karyawan
+ */
+
+/**
+ * @swagger
  * /api/evaluations:
  *   post:
- *     summary: Tambah evaluasi baru
+ *     summary: Tambah evaluasi karyawan oleh klien
  *     tags: [Evaluations]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -19,13 +30,48 @@ const router = express.Router();
  *             properties:
  *               project_id:
  *                 type: string
- *                 example: "60c72b2f9b1d8e5a7c8d24e3"
- *               reviewer_id:
+ *                 example: "67dc81b352caf1a66db28d8c"
+ *               employee_id:
  *                 type: string
- *                 example: "650c20f2a7d1d0b9d7c8d24e"
- *               score:
- *                 type: number
- *                 example: 85
+ *                 example: "67dc876152caf1a66db28d90"
+ *               scores:
+ *                 type: object
+ *                 properties:
+ *                   quality_of_work:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 5
+ *                     example: 5
+ *                   productivity:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 5
+ *                     example: 3
+ *                   technical_skills:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 5
+ *                     example: 4
+ *                   communication:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 5
+ *                     example: 4
+ *                   discipline:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 5
+ *                     example: 5
+ *                   initiative_and_creativity:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 5
+ *                     example: 4
+ *                   client_satisfaction:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 5
+ *                     example: 5
  *               comments:
  *                 type: string
  *                 example: "Kinerja sangat baik."
@@ -33,7 +79,7 @@ const router = express.Router();
  *       201:
  *         description: Evaluasi berhasil ditambahkan
  */
-router.post("/", createEvaluation);
+router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createEvaluation);
 
 /**
  * @swagger
@@ -45,7 +91,7 @@ router.post("/", createEvaluation);
  *       200:
  *         description: Data evaluasi berhasil diambil
  */
-router.get("/", getAllEvaluations);
+router.get("/", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), getAllEvaluations);
 
 /**
  * @swagger
@@ -64,7 +110,7 @@ router.get("/", getAllEvaluations);
  *       200:
  *         description: Data evaluasi berhasil diambil
  */
-router.get("/:id", getEvaluationById);
+router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), getEvaluationById);
 
 /**
  * @swagger
@@ -89,7 +135,7 @@ router.get("/:id", getEvaluationById);
  *       200:
  *         description: Evaluasi berhasil diperbarui
  */
-router.put("/:id", updateEvaluation);
+router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateEvaluation);
 
 /**
  * @swagger
@@ -108,6 +154,6 @@ router.put("/:id", updateEvaluation);
  *       200:
  *         description: Evaluasi berhasil dihapus
  */
-router.delete("/:id", deleteEvaluation);
+router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), deleteEvaluation);
 
 module.exports = router;

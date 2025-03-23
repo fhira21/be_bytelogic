@@ -1,9 +1,13 @@
+const { ADMIN_ROLE } = require("../constants/role");
 const Evaluation = require("../models/Evaluation");
 
 // Menambahkan evaluasi
 exports.createEvaluation = async (req, res) => {
     try {
-        const { project_id, client_id, employee_id, scores, comments } = req.body;
+        
+        const { project_id, employee_id, scores, comments } = req.body;
+
+        const client_id = req.user.role == ADMIN_ROLE ? req.body.client_id : req.user.id
 
         if (!project_id || !client_id || !employee_id || !scores) {
             return res.status(400).json({ message: "Semua field wajib diisi" });
@@ -16,7 +20,15 @@ exports.createEvaluation = async (req, res) => {
             scores,
             comments
         });
-        
+
+        let sum = 0
+
+        for (const [key, value] of Object.entries(scores)) {
+            sum += value
+        }
+
+        newEvaluation.final_score = sum / Object.keys(scores).length
+
         await newEvaluation.save();
         res.status(201).json({ message: "Evaluasi berhasil ditambahkan", data: newEvaluation });
     } catch (error) {
