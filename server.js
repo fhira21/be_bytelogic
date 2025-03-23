@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const swaggerDocs = require("./swagger");
 require("dotenv").config();
 
@@ -14,6 +15,8 @@ const path = require("path");
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
 
 // Koneksi ke MongoDB
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -22,6 +25,16 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 // Swagger Docs
 swaggerDocs(app);
+
+// Route Utama untuk Pengecekan Server
+app.get("/", (req, res) => {
+  res.send("✅ Backend is running successfully on Railway!");
+});
+
+// Route Pengujian API
+app.get("/api/test", (req, res) => {
+  res.json({ message: "🚀 API is working properly!" });
+});
 
 // Menggunakan Routes
 app.use("/api/users", userRoutes);
