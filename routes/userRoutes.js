@@ -24,8 +24,8 @@ const router = express.Router();
  *                 example: "password123"
  *               role:
  *                 type: string
- *                 enum: ["karyawan", "manager", "client"]
- *                 example: "manager"
+ *                 enum: ["karyawan", "manager/admin", "client"]
+ *                 example: "manager/admin"
  *     responses:
  *       201:
  *         description: Pengguna berhasil terdaftar
