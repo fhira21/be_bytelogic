@@ -79,7 +79,54 @@ const router = express.Router();
  *       201:
  *         description: Evaluasi berhasil ditambahkan
  */
-router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createEvaluation);
+//router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createEvaluation);
+router.post("/", async (req, res) => {
+    try {
+      const { project_id, client_id, employee_id, results, comments } = req.body;
+  
+      let totalWeightedScore = 0;
+      let totalWeight = 0;
+      const detailedResults = [];
+  
+      for (const result of results) {
+        const aspect = await EvaluationAspect.findById(result.aspect_id);
+        if (!aspect) continue;
+  
+        const selected = aspect.criteria.find(c => c.score === result.selected_score);
+        if (!selected) continue;
+  
+        const weighted = result.selected_score * aspect.weight;
+  
+        totalWeightedScore += weighted;
+        totalWeight += aspect.weight;
+  
+        detailedResults.push({
+          aspect_id: aspect._id,
+          selected_criteria: {
+            value: result.selected_score,
+            description: selected.label
+          }
+        });
+      }
+  
+      const finalScore = totalWeight > 0 ? (totalWeightedScore / totalWeight).toFixed(2) : 0;
+  
+      const newEvaluation = new Evaluation({
+        project_id,
+        client_id,
+        employee_id,
+        results: detailedResults,
+        final_score: finalScore,
+        comments
+      });
+  
+      await newEvaluation.save();
+  
+      res.status(201).json({ message: "Evaluasi berhasil disimpan", evaluation: newEvaluation });
+    } catch (err) {
+      res.status(500).json({ message: "Terjadi kesalahan", error: err.message });
+    }
+  });
 
 /**
  * @swagger
@@ -136,6 +183,7 @@ router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_RO
  *         description: Evaluasi berhasil diperbarui
  */
 router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateEvaluation);
+
 
 /**
  * @swagger

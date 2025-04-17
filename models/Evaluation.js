@@ -13,26 +13,31 @@ const evaluationSchema = new mongoose.Schema({
   },
   employee_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Karyawan",
     required: true
   },
   evaluation_date: {
     type: Date,
     default: Date.now
   },
-  scores: {
-    quality_of_work: { type: Number, min: 1, max: 5, required: true },
-    productivity: { type: Number, min: 1, max: 5, required: true },
-    technical_skills: { type: Number, min: 1, max: 5, required: true },
-    communication: { type: Number, min: 1, max: 5, required: true },
-    discipline: { type: Number, min: 1, max: 5, required: true },
-    initiative_and_creativity: { type: Number, min: 1, max: 5, required: true },
-    client_satisfaction: { type: Number, min: 1, max: 5, required: true }
+  results: [
+    {
+      aspect_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "EvaluationAspect",
+        required: true
+      },
+      selected_criteria: {
+        description: String,
+        value: { type: Number, min: 1, max: 5 }
+      }
+    }
+  ],
+  final_score: {
+    type: Number 
   },
-  final_score: { type: Number },
   comments: {
-    type: String,
-    required: false
+    type: String
   }
 }, { timestamps: true });
 

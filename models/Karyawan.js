@@ -11,6 +11,12 @@ const karyawanSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  nik: {
+    type: String,
+    unique: true,
+    required: true,
+    match: [/^\d{16}$/, "NIK harus terdiri dari 16 digit angka"]
+  },
   email: {
     type: String,
     required: true,
@@ -25,17 +31,12 @@ const karyawanSchema = new mongoose.Schema({
     trim: true,
     match: [/^\d{10,15}$/, "Nomor telepon harus terdiri dari 10-15 digit angka"]
   },
-  alamat: {
-    type: String,
-    required: true,
-    trim: true
-  },
   tanggal_lahir: {
     type: Date,
     required: true,
     validate: {
       validator: function (value) {
-        return value <= new Date(); // Tidak boleh tanggal di masa depan
+        return value <= new Date();
       },
       message: "Tanggal lahir tidak boleh di masa depan"
     }
@@ -45,14 +46,22 @@ const karyawanSchema = new mongoose.Schema({
     enum: ["laki-laki", "perempuan"],
     required: true
   },
+  status_pernikahan: {
+    type: String,
+    enum: ["menikah", "belum menikah"],
+    required: true
+  },
+  alamat: {
+    type: String,
+    required: true,
+    trim: true
+  },
   foto_profile: {
     type: String
   },
-  nik: {
+  status_Karyawan: {
     type: String,
-    unique: true,
-    required: true,
-    match: [/^\d{16}$/, "NIK harus terdiri dari 16 digit angka"]
+    enum: ["Karyawan Aktif", "Karyawan Tidak Aktif", "Magang Aktif", "Magang Tidak Aktif"]
   },
   riwayat_pendidikan: [{
     jenjang: { type: String, required: true },
@@ -63,12 +72,7 @@ const karyawanSchema = new mongoose.Schema({
       min: [1900, "Tahun lulus minimal 1900"],
       max: [new Date().getFullYear(), "Tahun lulus tidak boleh melebihi tahun sekarang"]
     }
-  }],
-  status_pernikahan: {
-    type: String,
-    enum: ["menikah", "belum menikah"],
-    required: true
-  }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("Karyawan", karyawanSchema);

@@ -8,7 +8,7 @@ const GithubCommitSchema = new mongoose.Schema({
 }, { _id: false });
 
 const SDLCProgress = new mongoose.Schema({
-  analisis: { type: Number, default: 0 }, // dalam persentase (%)
+  analisis: { type: Number, default: 0 },
   desain: { type: Number, default: 0 },
   implementasi: { type: Number, default: 0 },
   pengujian: { type: Number, default: 0 },
@@ -20,13 +20,14 @@ const ProjectSchema = new mongoose.Schema({
   description: { type: String, required: true },
   status: {
     type: String,
-    enum: ["Perancangan", "Pengembangan", "Selesai"],
-    default: "Perancangan"
+    enum: ["Waiting List", "On Progress", "Completed"],
+    default: "Waiting List"
   },
   deadline: { type: Date },
-  client: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  completiondate: { type: Date },
+  client: { type: mongoose.Schema.Types.ObjectId, ref: "Client", required: true },
   manager: { type: mongoose.Schema.Types.ObjectId, ref: "Manager", required: true },
-  employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Karyawan" }],
 
   github_repo_name: { type: String },
   github_username: { type: String },
