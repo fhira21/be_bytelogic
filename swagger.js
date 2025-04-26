@@ -38,7 +38,7 @@ const options = {
       { name: "Reviews", description: "Manajemen data review pengguna terhadap perusahaan" },
     ],
   },
-  apis: ["./routes/*.js"], // Pastikan semua routes dimasukkan
+  apis: ["./routes/*.js"], 
 };
 
 const swaggerDocs = swaggerJsDoc(options);
