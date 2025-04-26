@@ -27,7 +27,9 @@ const ProjectSchema = new mongoose.Schema({
   completiondate: { type: Date },
   client: { type: mongoose.Schema.Types.ObjectId, ref: "Client", required: true },
   manager: { type: mongoose.Schema.Types.ObjectId, ref: "Manager", required: true },
-  employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Karyawan" }],
+  employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Karyawan",required: true }],
+
+  images: [{type: String}],
 
   github_repo_name: { type: String },
   github_username: { type: String },

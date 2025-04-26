@@ -11,11 +11,7 @@ const evaluationSchema = new mongoose.Schema({
     ref: "Client",
     required: true
   },
-  employee_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Karyawan",
-    required: true
-  },
+  employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Karyawan" }],
   evaluation_date: {
     type: Date,
     default: Date.now
@@ -34,7 +30,7 @@ const evaluationSchema = new mongoose.Schema({
     }
   ],
   final_score: {
-    type: Number 
+    type: Number
   },
   comments: {
     type: String
