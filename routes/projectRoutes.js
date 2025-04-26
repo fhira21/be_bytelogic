@@ -8,7 +8,8 @@ const {
   updateProjectStatus,
   getAllProjects,
   getProjectById,
-  updateProgress
+  updateProgress,
+  getKaryawanProjectAndEvaluation
 } = require("../controllers/projectController");
 const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
 const upload = require("../middlewares/uploadMiddleware")
@@ -270,5 +271,26 @@ router.delete("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE
  *         description: Status proyek diperbarui
  */
 router.post("/:projectId/progress", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), updateProgress);
+
+
+/**
+ * @swagger
+ * /api/projects/karyawan/evaluations:
+ *   get:
+ *     summary: Mendapatkan proyek dan evaluasi yang diikuti oleh karyawan
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Data proyek dan evaluasi berhasil diambil
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/karyawan/evaluations",  getKaryawanProjectAndEvaluation);
 
 module.exports = router;
