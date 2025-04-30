@@ -7,9 +7,7 @@ const {
   deleteProject,
   getAllProjects,
   getProjectById,
-  updateProgress,
-  getAllPublic,
-  getKaryawanProjectAndEvaluation
+  updateProgress
 } = require("../controllers/projectController");
 const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
 const upload = require("../middlewares/uploadMiddleware")
@@ -278,26 +276,5 @@ router.delete("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), deleteProjec
  *         description: Gagal memperbarui data proyek
  */
 router.post("/:projectId/progress", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), updateProgress);
-
-
-/**
- * @swagger
- * /api/projects/karyawan/evaluations:
- *   get:
- *     summary: jumlah project dan totoal evaluasi by karyawan
- *     tags: [Projects]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Data proyek dan evaluasi berhasil diambil
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden
- *       500:
- *         description: Internal server error
- */
-router.get("/karyawan/evaluations", verifyToken, verifyRole([ADMIN_ROLE]), getKaryawanProjectAndEvaluation);
 
 module.exports = router;
