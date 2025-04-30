@@ -2,6 +2,7 @@ const express = require("express");
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 const {
   createProject,
+  getAllPublic,
   getProjectskaryawanklien,
   updateProject,
   deleteProject,
@@ -10,7 +11,7 @@ const {
   updateProgress
 } = require("../controllers/projectController");
 const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
-const upload = require("../middlewares/uploadMiddleware")
+const upload = require("../middlewares/uploadMiddleware");
 
 const router = express.Router();
 
