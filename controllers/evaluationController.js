@@ -3,6 +3,8 @@ const Evaluation = require("../models/Evaluation");
 const EvaluationAspect = require("../models/EvaluationAspect");
 const Project = require("../models/Project");
 const Client = require("../models/Client");
+const Karyawan = require("../models/Karyawan");
+
 
 // Menambahkan evaluasi
 exports.createEvaluation = async (req, res) => {
@@ -26,12 +28,12 @@ exports.createEvaluation = async (req, res) => {
             return res.status(400).json({ message: "Client belum memiliki project" })
 
         if (!scores)
-            return res.status(400).json({ message: "Semua field wajib diisi" });
+            return res.status(401).json({ message: "Semua field wajib diisi" });
 
         const evaluationAspects = await EvaluationAspect.find({}).sort({ _id: 1 })
 
         if (scores.length != evaluationAspects.length)
-            return res.status(400).json({ message: "Score tidak sesuai dengan aspek penilaian" });
+            return res.status(403).json({ message: "Score tidak sesuai dengan aspek penilaian" });
 
         let evaluationResult = []
 
@@ -85,6 +87,104 @@ exports.getAllEvaluations = async (req, res) => {
     }
 };
 
+
+exports.getAllEvaluationskaryawan = async (req, res) => {
+  try {
+    let filter = {};
+
+    // Periksa apakah ada client yang terdaftar pada req.user
+    if (req.user && req.user.client) {
+      filter.client_id = req.user.client._id; // Menyaring berdasarkan client jika user adalah client
+    }
+
+    // Periksa apakah ada karyawan yang terdaftar pada req.user
+    if (req.user && req.user.karyawan) {
+      filter.employees = { $in: [req.user.karyawan._id] }; // Menyaring berdasarkan karyawan jika user adalah karyawan
+    }
+
+    // Ambil semua evaluasi sesuai filter karyawan dan client
+    const evaluations = await Evaluation.find(filter)
+      .populate("client_id employees", "nama_lengkap")
+      .populate("project_id", "title");
+
+    if (evaluations.length === 0) {
+      return res.status(404).json({ message: "Tidak ada evaluasi ditemukan" });
+    }
+
+    // Grouping hasil evaluasi berdasarkan karyawan
+    const result = evaluations.map((evaluation) => {
+      // Group evaluasi berdasarkan karyawan
+      const karyawanEvaluasi = {
+        nama_karyawan: evaluation.employees.map((emp) => emp.nama_lengkap).join(", "), // Gabungkan nama karyawan yang dievaluasi
+        project_title: evaluation.project_id.title, // Menampilkan title project yang telah dievaluasi
+        final_score: evaluation.final_score, // Nilai akhir evaluasi
+        results: evaluation.results // Hasil evaluasi per aspek
+      };
+
+      return karyawanEvaluasi;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error(error); // Untuk membantu debugging
+    res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+  }
+};
+
+exports.getKaryawanProjectAndDetailedEvaluation = async (req, res) => {
+    try {
+      // 1. Ambil semua karyawan
+      const karyawans = await Karyawan.find();
+  
+      // 2. Proses setiap karyawan
+      const results = await Promise.all(karyawans.map(async (karyawan) => {
+        // Ambil semua evaluasi yang mencantumkan karyawan ini
+        const evaluations = await Evaluation.find({ employees: karyawan._id })
+          .populate("project_id", "title") // Ambil judul project
+          .populate("client_id", "nama_lengkap"); // Ambil nama client yang menilai (optional)
+  
+        // Ambil total proyek dari evaluasi (bukan semua proyek yang dia ikuti, hanya yang sudah ada evaluasinya)
+        const totalEvaluatedProjects = evaluations.length;
+  
+        // Hitung rata-rata nilai akhir
+        const totalScore = evaluations.reduce((acc, curr) => acc + (curr.final_score || 0), 0);
+        const averageScore = totalEvaluatedProjects > 0 ? (totalScore / totalEvaluatedProjects).toFixed(2) : null;
+  
+        // Format detail evaluasi per project
+        const evaluatedProjects = evaluations.map(e => ({
+          project_title: e.project_id?.title || "Tidak diketahui",
+          client: e.client_id?.nama_lengkap || "Tidak diketahui",
+          final_score: e.final_score,
+          aspects: e.results  // ini array dari hasil per aspek
+        }));
+  
+        return {
+          nama_karyawan: karyawan.nama_lengkap,
+          total_project_dinilai: totalEvaluatedProjects,
+          rata_rata_point_evaluasi: averageScore,
+          evaluasi_projects: evaluatedProjects
+        };
+      }));
+  
+      res.status(200).json({
+        success: true,
+        data: results
+      });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching karyawan evaluation data",
+        error: error.message
+      });
+    }
+  };
+  
+      
 // Mendapatkan evaluasi berdasarkan ID
 exports.getEvaluationById = async (req, res) => {
     try {
@@ -141,7 +241,7 @@ exports.updateEvaluation = async (req, res) => {
                 const currentScore = parseInt(scores[i]);
 
                 if (isNaN(currentScore) || currentScore < 1 || currentScore > aspect.criteria.length) {
-                    return res.status(400).json({ message: `Skor untuk aspek ${aspect.name} tidak valid` });
+                    return res.status(401).json({ message: `Skor untuk aspek ${aspect.name} tidak valid` });
                 }
 
                 tempScore += currentScore * aspect.weight;

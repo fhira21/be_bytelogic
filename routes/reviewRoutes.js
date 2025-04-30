@@ -37,6 +37,10 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Review berhasil ditambahkan
+ *       400:
+ *         description: Semua field (review,client_id, rating) harus diisi
+ *       500: 
+ *         description: Gagal menambahkan review
  */
 router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createReview);
 
@@ -49,6 +53,8 @@ router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createReview);
  *     responses:
  *       200:
  *         description: Data review berhasil diambil
+ *       500:
+ *         description: Gagal mengambil data review
  */
 router.get("/", getAllReviews);
 
@@ -68,6 +74,10 @@ router.get("/", getAllReviews);
  *     responses:
  *       200:
  *         description: Data review berhasil diambil
+ *       404:
+ *         description: Review tidak ditemukan
+ *       500:
+ *         description: Gagal mengambil data review
  */
 router.get("/:id", getReviewById);
 
@@ -92,7 +102,11 @@ router.get("/:id", getReviewById);
  *                 example: 4
  *     responses:
  *       200:
- *         description: Review berhasil diperbarui
+ *         description: Data review berhasil diambil
+ *       404:
+ *         description: Review tidak ditemukan
+ *       500:
+ *         description: Gagal mengambil data review
  */
 router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateReview);
 
@@ -111,7 +125,11 @@ router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateReview);
  *           example: "60c72b2f9b1d8e5a7c8d24e3"
  *     responses:
  *       200:
- *         description: Review berhasil dihapus
+ *         description: Data review berhasil diambil
+ *       404:
+ *         description: Review tidak ditemukan
+ *       500:
+ *         description: Gagal mengambil data review
  */
 router.delete("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), deleteReview);
 

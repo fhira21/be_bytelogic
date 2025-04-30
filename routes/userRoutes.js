@@ -1,13 +1,19 @@
 const express = require("express");
-const { registerUser, loginUser, getUserById, resetPassword, deleteUser } = require("../controllers/userController");
-
 const router = express.Router();
+const userController = require("../controllers/userController");
+
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: API untuk manajemen user (register, login, reset password, delete user)
+ */
 
 /**
  * @swagger
  * /api/users/register:
  *   post:
- *     summary: Register pengguna baru
+ *     summary: Register user baru
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -15,28 +21,32 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - password
  *             properties:
  *               username:
  *                 type: string
- *                 example: "john_doe"
  *               password:
- *                 type: string
- *                 example: "password123"
+ *                 type: password
  *               role:
- *                 type: string
- *                 enum: ["karyawan", "manager/admin", "client"]
- *                 example: "manager/admin"
+ *                 type: manager/admin
+ *                 description: Role user (manager/admin, employee, client)
  *     responses:
  *       201:
- *         description: Pengguna berhasil terdaftar
+ *         description: User registered successfully
+ *       400:
+ *         description: Username atau password tidak boleh kosong
+ *       500:
+ *         description: Internal server error
  */
-router.post("/register", registerUser);
+router.post("/register", userController.registerUser);
 
 /**
  * @swagger
  * /api/users/login:
  *   post:
- *     summary: Login pengguna
+ *     summary: Login user
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -44,24 +54,33 @@ router.post("/register", registerUser);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - password
  *             properties:
  *               username:
- *                 type: string
- *                 example: "john_doe"
+ *                 type: karyawan
  *               password:
- *                 type: string
- *                 example: "password123"
+ *                 type: password
  *     responses:
  *       200:
- *         description: Berhasil login
+ *         description: Login successful
+ *       400:
+ *         description: Username atau password tidak boleh kosong
+ *       401:
+ *         description: Invalid credentials
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
-router.post("/login", loginUser);
+router.post("/login", userController.loginUser);
 
 /**
  * @swagger
  * /api/users/{id}:
  *   get:
- *     summary: Dapatkan detail pengguna berdasarkan ID
+ *     summary: Ambil data user berdasarkan ID
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -69,18 +88,22 @@ router.post("/login", loginUser);
  *         required: true
  *         schema:
  *           type: string
- *           example: "60c72b2f9b1d8e5a7c8d24e3"
+ *         description: ID user
  *     responses:
  *       200:
- *         description: Data pengguna berhasil diambil
+ *         description: Data user ditemukan
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
-router.get("/:id", getUserById);
+router.get("/:id", userController.getUserById);
 
 /**
  * @swagger
  * /api/users/reset-password:
- *   post:
- *     summary: Reset password pengguna
+ *   put:
+ *     summary: Reset password user
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -88,24 +111,31 @@ router.get("/:id", getUserById);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - newPassword
  *             properties:
  *               username:
  *                 type: string
- *                 example: "john_doe"
  *               newPassword:
  *                 type: string
- *                 example: "newpassword123"
  *     responses:
  *       200:
- *         description: Password berhasil direset
+ *         description: Password reset successfully
+ *       400:
+ *         description: Username atau newPassword tidak boleh kosong
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
-router.post("/reset-password", resetPassword);
+router.put("/reset-password", userController.resetPassword);
 
 /**
  * @swagger
  * /api/users/{id}:
  *   delete:
- *     summary: Hapus pengguna berdasarkan ID
+ *     summary: Hapus user berdasarkan ID
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -113,11 +143,15 @@ router.post("/reset-password", resetPassword);
  *         required: true
  *         schema:
  *           type: string
- *           example: "60c72b2f9b1d8e5a7c8d24e3"
+ *         description: ID user
  *     responses:
  *       200:
- *         description: Pengguna berhasil dihapus
+ *         description: User deleted successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
-router.delete("/:id", deleteUser);
+router.delete("/:id", userController.deleteUser);
 
 module.exports = router;

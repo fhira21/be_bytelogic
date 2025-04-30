@@ -40,6 +40,10 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Data klien berhasil ditambahkan
+ *       400:
+ *         description: Email sudah mendaftar sebagai klien lain
+ *       500:
+ *         description:Gagal menambahkan data klien
  */
 router.post("/", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), createClient);
 
@@ -52,6 +56,8 @@ router.post("/", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), createClien
  *     responses:
  *       200:
  *         description: Data klien berhasil diambil
+ *       500:
+ *         description: Gagal mengambil data klien
  */
 router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllClients);
 
@@ -71,6 +77,12 @@ router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllClients);
  *     responses:
  *       200:
  *         description: Data klien berhasil diambil
+ *       400:
+ *         description: ID tidak valid
+ *       404:
+ *         description: Klien tidak ditemukan
+ *       500:
+ *         description: Gagal mengambil datd
  */
 router.get("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), getClientById);
 
@@ -93,6 +105,10 @@ router.get("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), getClientB
  *     responses:
  *       200:
  *         description: Data klien berhasil diperbarui
+ *       404:
+ *         description:Klien tidak ditemukan
+ *       500:
+ *         description: Gagal memperbarui data klien
  */
 router.put("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateClient);
 
@@ -112,6 +128,10 @@ router.put("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateClie
  *     responses:
  *       200:
  *         description: Data klien berhasil dihapus
+ *       404:
+ *         description:Klien tidak ditemukan
+ *       500:
+ *         description: Gagal menghapus data klien
  */
 router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), deleteClient);
 

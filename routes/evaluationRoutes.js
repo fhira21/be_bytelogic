@@ -1,6 +1,6 @@
 // routes/evaluationRoutes.js
 const express = require("express");
-const { createEvaluation, getAllEvaluations, getEvaluationById, updateEvaluation, deleteEvaluation } = require("../controllers/evaluationController");
+const { createEvaluation, getKaryawanProjectAndDetailedEvaluation, getAllEvaluations,getAllEvaluationskaryawan, getEvaluationById, updateEvaluation, deleteEvaluation } = require("../controllers/evaluationController");
 const { CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE } = require("../constants/role");
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
@@ -43,67 +43,60 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Evaluasi berhasil ditambahkan
+ *       404:
+ *         description: Project not found!
+ *       400:
+ *         description: Client belum memiliki project
+ *       401:
+ *         description: Semua field wajib diisi
+ *       403:
+ *         description: Score tidak sesuai dengan aspek penilaian
+ *       500:
+ *         description: Terjadi kesalahan
  */
 router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createEvaluation);
-// router.post("/", async (req, res) => {
-//     try {
-//       const { project_id, client_id, employee_id, results, comments } = req.body;
-
-//       let totalWeightedScore = 0;
-//       let totalWeight = 0;
-//       const detailedResults = [];
-
-//       for (const result of results) {
-//         const aspect = await EvaluationAspect.findById(result.aspect_id);
-//         if (!aspect) continue;
-
-//         const selected = aspect.criteria.find(c => c.score === result.selected_score);
-//         if (!selected) continue;
-
-//         const weighted = result.selected_score * aspect.weight;
-
-//         totalWeightedScore += weighted;
-//         totalWeight += aspect.weight;
-
-//         detailedResults.push({
-//           aspect_id: aspect._id,
-//           selected_criteria: {
-//             value: result.selected_score,
-//             description: selected.label
-//           }
-//         });
-//       }
-
-//       const finalScore = totalWeight > 0 ? (totalWeightedScore / totalWeight).toFixed(2) : 0;
-
-//       const newEvaluation = new Evaluation({
-//         project_id,
-//         client_id,
-//         employee_id,
-//         results: detailedResults,
-//         final_score: finalScore,
-//         comments
-//       });
-
-//       await newEvaluation.save();
-
-//       res.status(201).json({ message: "Evaluasi berhasil disimpan", evaluation: newEvaluation });
-//     } catch (err) {
-//       res.status(500).json({ message: "Terjadi kesalahan", error: err.message });
-//     }
-//   });
 
 /**
  * @swagger
  * /api/evaluations:
  *   get:
- *     summary: Ambil semua evaluasi
+ *     summary: Ambil semua evaluasi yang ada
  *     tags: [Evaluations]
  *     responses:
  *       200:
  *         description: Data evaluasi berhasil diambil
+ *       500:
+ *         description: Terjadi kesalahan
  */
-router.get("/", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), getAllEvaluations);
+router.get("/", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]),  getAllEvaluations);
+
+/**
+ * @swagger
+ * /api/evaluations/evaluationkaraywan:
+ *   get:
+ *     summary: Ambil semua evaluasi karyawan
+ *     tags: [Evaluations]
+ *     responses:
+ *       200:
+ *         description: Data evaluasi berhasil diambil
+ *       500:
+ *         description: Terjadi kesalahan
+ */
+router.get("/evaluationkaraywan", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]),  getAllEvaluationskaryawan);
+
+/**
+ * @swagger
+ * /api/evaluations/karyawan/evaluasi-detailed:
+ *   get:
+ *     summary: Ambil semua evaluasi per employee
+ *     tags: [Evaluations]
+ *     responses:
+ *       200:
+ *         description: Data evaluasi berhasil diambil
+ *       500:
+ *         description: Error fetching karyawan evaluation data
+ */
+router.get("/karyawan/evaluasi-detailed",verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getKaryawanProjectAndDetailedEvaluation);
 
 /**
  * @swagger
@@ -121,8 +114,12 @@ router.get("/", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]
  *     responses:
  *       200:
  *         description: Data evaluasi berhasil diambil
+ *       404:
+ *         description: Evaluasi tidak ditemukan
+ *       500:
+ *         description : terjadi kesalahan
  */
-router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), getEvaluationById);
+router.get("/:id", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getEvaluationById);
 
 /**
  * @swagger
@@ -146,8 +143,16 @@ router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_RO
  *     responses:
  *       200:
  *         description: Evaluasi berhasil diperbarui
+ *       404:
+ *         description: Evaluasi tidak ditemukan atau anda tidak memiliki akases
+ *       400:
+ *         description: Score tidak sesuai dengan aspek penilaian
+ *       401:
+ *         deskripsi: Skor untuk aspek
+ *       500:
+ *         deskripsi: Terjadi kesalahan
  */
-router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateEvaluation);
+router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateEvaluation);
 
 
 /**
@@ -166,6 +171,10 @@ router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateEvaluation);
  *     responses:
  *       200:
  *         description: Evaluasi berhasil dihapus
+ *       404: 
+ *         deskription: Evaluasi tidak ditemukan
+ *       500:
+ *         description: Terjadi Kesalahan
  */
 router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), deleteEvaluation);
 

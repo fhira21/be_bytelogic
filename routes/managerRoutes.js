@@ -40,6 +40,8 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Data manajer berhasil ditambahkan
+ *       500:
+ *         description: Gagal menambahkan data manajer
  */
 router.post("/", verifyToken, verifyRole([ADMIN_ROLE]), createManager);
 
@@ -52,6 +54,8 @@ router.post("/", verifyToken, verifyRole([ADMIN_ROLE]), createManager);
  *     responses:
  *       200:
  *         description: Data manajer berhasil diambil
+ *       500:
+ *         description: Gagal mengambil data manajer
  */
 router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllManagers);
 
@@ -71,6 +75,10 @@ router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllManagers);
  *     responses:
  *       200:
  *         description: Data manajer berhasil diambil
+ *       404:
+ *         description: data manajer tidak ditemukan
+ *       500:
+ *         description: Gagal mengambil data manajer
  */
 router.get("/:id", verifyToken, verifyRole([ADMIN_ROLE]), getManagerById);
 
@@ -93,6 +101,10 @@ router.get("/:id", verifyToken, verifyRole([ADMIN_ROLE]), getManagerById);
  *     responses:
  *       200:
  *         description: Data manajer berhasil diperbarui
+ *       404:
+ *         description: Data manajer tidak ditemukan
+ *       500:
+ *         description: Gagal memperbarui data manajer
  */
 router.put("/:id", verifyToken, verifyRole([ADMIN_ROLE]), updateManager);
 
@@ -112,6 +124,10 @@ router.put("/:id", verifyToken, verifyRole([ADMIN_ROLE]), updateManager);
  *     responses:
  *       200:
  *         description: Data manajer berhasil dihapus
+ *       404:
+ *         description: data manajer tidak ditemukan
+ *       500:
+ *         description: Gagal menghapus data manajer
  */
 router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), deleteManager);
 

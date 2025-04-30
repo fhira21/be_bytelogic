@@ -1,5 +1,10 @@
 const { ADMIN_ROLE, CLIENT_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
 const Project = require("../models/Project");
+const Evaluation = require("../models/Evaluation");
+const Karyawan = require("../models/Karyawan");
+const Client = require("../models/Client");
+
+
 const { createRepository, updateRepository, getCommits } = require("../services/githubService");
 
 exports.createProject = async (req, res) => {
@@ -40,6 +45,23 @@ exports.createProject = async (req, res) => {
   }
 };
 
+exports.getAllPublic = async (req, res) => {
+  try {
+    const projects = await Project.find();
+    res.status(200).json({
+      success: true,
+      data: projects
+    });
+  } catch (error) {
+    // Menangani error dan mengembalikan respons dengan status 500
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan saat mengambil proyek",
+      error: error.message
+    });
+  }
+};
+
 exports.getAllProjects = async (req, res) => {
   try {
     // Mengambil semua proyek dan melakukan populate pada field client dan manager
@@ -54,28 +76,39 @@ exports.getAllProjects = async (req, res) => {
     // Menangani error dan mengembalikan respons dengan status 500
     res.status(500).json({
       success: false,
-      message: "Error fetching projects",
+      message: "Terjadi kesalahan saat mengambil proyek",
       error: error.message
     });
   }
 };
 
-exports.getProjects = async (req, res) => {
+exports.getProjectskaryawanklien = async (req, res) => {
   try {
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
     let projects;
-    if (req.user.role === ADMIN_ROLE) {
-      projects = await Project.find({}, '-github_commits').populate("client", "name").populate("employees", "name");
-    } else if (req.user.role === CLIENT_ROLE) {
-      projects = await Project.find({ client: req.user.userId }, '-github_commits').populate("employees", "name");
-    } else if (req.user.role === EMPLOYEE_ROLE) {
-      projects = await Project.find({ employees: req.user.userId }, '-github_commits').populate("client", "name");
+
+    if (userRole === CLIENT_ROLE) {
+      const client = await Client.findOne({ user: userId });
+      if (!client) return res.status(404).json({ message: "Client tidak ditemukan" });
+
+      projects = await Project.find({ client: client._id }, '-github_commits')
+        .populate("employees", "name");
+    } else if (userRole === EMPLOYEE_ROLE) {
+      const employee = await Karyawan.findOne({ user: userId });
+      if (!employee) return res.status(404).json({ message: "Karyawan tidak ditemukan" });
+
+      projects = await Project.find({ employees: employee._id }, '-github_commits')
+        .populate("client", "name");
     } else {
       return res.status(403).json({ message: "Akses tidak diizinkan" });
     }
 
     res.status(200).json({ message: "Berhasil mengambil proyek", data: projects });
   } catch (error) {
-    res.status(500).json({ message: "Gagal mengambil data proyek", error });
+    console.error("Error getProjects:", error);
+    res.status(500).json({ message: "Gagal mengambil data proyek", error: error.message });
   }
 };
 
@@ -106,9 +139,9 @@ exports.getProjectById = async (req, res) => {
 
     return res.status(200).json({ message: "Data proyek berhasil diambil", data: project });
   } catch (error) {
-    return res.status(500).json({ message: "Gagal mengambil proyek", error: error.message, errorstack: error });
+    return res.status(500).json({ message: "Gagal mengambil dataproyek", error: error.message, errorstack: error });
   }
-}
+};
 
 exports.updateProject = async (req, res) => {
   try {
@@ -209,10 +242,9 @@ exports.updateProject = async (req, res) => {
     }
 
   } catch (error) {
-    return res.status(500).json({ message: "Gagal memperbarui proyek", error: error.message, errorstack: error });
+    return res.status(500).json({ message: "Gagal memperbarui data proyek", error: error.message, errorstack: error });
   }
 };
-
 
 exports.deleteProject = async (req, res) => {
   if (req.user.role !== "manager") {
@@ -276,5 +308,50 @@ exports.updateProgress = async (req, res) => {
     res.status(200).json({ message: "Status proyek diperbarui", project });
   } catch (error) {
     res.status(500).json({ message: "Gagal memperbarui status proyek", error });
+  }
+};
+
+exports.getKaryawanProjectAndEvaluation = async (req, res) => {
+  try {
+    // 1. Ambil semua karyawan
+    const karyawans = await Karyawan.find();
+
+    // 2. Proses setiap karyawan
+    const results = await Promise.all(karyawans.map(async (karyawan) => {
+      // Hitung total project yang karyawan ini ikut
+      const totalProjects = await Project.countDocuments({ employees: karyawan._id });
+
+      // Cari semua evaluasi yang terkait karyawan ini
+      const evaluations = await Evaluation.find({ employees: karyawan._id });
+
+      // Hitung rata-rata final_score dari evaluasi
+      let totalScore = 0;
+      evaluations.forEach((evalDoc) => {
+        if (evalDoc.final_score) {
+          totalScore += evalDoc.final_score;
+        }
+      });
+
+      const averageScore = evaluations.length > 0 ? (totalScore / evaluations.length).toFixed(2) : null;
+
+      return {
+        nama_lengkap: karyawan.nama_lengkap,
+        total_project: totalProjects,
+        rata_rata_point_evaluasi: averageScore
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: results
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching karyawan project and evaluation data",
+      error: error.message
+    });
   }
 };

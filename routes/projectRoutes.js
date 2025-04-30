@@ -2,13 +2,14 @@ const express = require("express");
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 const {
   createProject,
-  getProjects,
+  getProjectskaryawanklien,
   updateProject,
   deleteProject,
-  updateProjectStatus,
   getAllProjects,
   getProjectById,
-  updateProgress
+  updateProgress,
+  getAllPublic,
+  getKaryawanProjectAndEvaluation
 } = require("../controllers/projectController");
 const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
 const upload = require("../middlewares/uploadMiddleware")
@@ -67,14 +68,32 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Proyek berhasil dibuat
+ *       500:
+ *         description: Gagal membuat proyek
  */
 router.post("/", verifyToken, verifyRole([ADMIN_ROLE]), upload.array('images', 10), createProject);
 
 /**
  * @swagger
+ * /api/projects/public:
+ *   get:
+ *     summary: Mendapatkan semua proyek landingpage
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Berhasil mengambil semua proyek
+ *       500:
+ *         description: Terjadi kesalahan saat mengambil proyek
+ */
+router.get('/public', getAllPublic);
+
+/**
+ * @swagger
  * /api/projects:
  *   get:
- *     summary: Get all projects
+ *     summary: mengambil semua data project (admin)
  *     description: Retrieve a list of all projects.
  *     tags:
  *       - Projects
@@ -83,48 +102,29 @@ router.post("/", verifyToken, verifyRole([ADMIN_ROLE]), upload.array('images', 1
  *     responses:
  *       200:
  *         description: A list of projects.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Project'
  *       500:
- *         description: Internal server error.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: Error fetching projects
- *                 error:
- *                   type: string
- *                   example: Error message
+ *         description: Terjadi kesalahan saat mengambil proyek.
  */
 router.get('/', verifyToken, verifyRole([ADMIN_ROLE, EMPLOYEE_ROLE]), getAllProjects);
 
-// /**
-//  * @swagger
-//  * /api/projects:
-//  *   get:
-//  *     summary: Mendapatkan daftar proyek sesuai role user
-//  *     tags: [Projects]
-//  *     responses:
-//  *       200:
-//  *         description: Berhasil mengambil proyek
-//  */
-// router.get("/:role", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), getProjects);
+/**
+ * @swagger
+ * /api/projects/karyawan/klien:
+ *   get:
+ *     summary: Mendapatkan daftar proyek berdasarkan peran pengguna (Klien atau Karyawan)
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Berhasil mengambil data proyek
+ *       403:
+ *         description: Akses tidak diijinkan
+ *       500:
+ *         description: Gagal mengambil data proyek
+ */
+router.get('/karyawan/klien', verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE]), getProjectskaryawanklien);
+
 
 /**
  * @swagger
@@ -142,6 +142,8 @@ router.get('/', verifyToken, verifyRole([ADMIN_ROLE, EMPLOYEE_ROLE]), getAllProj
  *     responses:
  *       200:
  *         description: Data proyek berhasil diambil
+ *       500:
+ *         description: Gagal mengambil data proyek
  */
 router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), getProjectById);
 
@@ -207,8 +209,10 @@ router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *     responses:
  *       200:
  *         description: Proyek berhasil diperbarui
+ *       500:
+ *         description: Gagal memperbarui data proyek
  */
-router.put("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), upload.array('images', 10), updateProject);
+router.put("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), upload.array('images', 10), updateProject);
 
 
 /**
@@ -227,8 +231,10 @@ router.put("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *     responses:
  *       200:
  *         description: Proyek berhasil dihapus
+ *       500:
+ *         description: Gagal memperbarui data proyek
  */
-router.delete("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE]), deleteProject);
+router.delete("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), deleteProject);
 
 /**
  * @swagger
@@ -268,7 +274,30 @@ router.delete("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE
  *     responses:
  *       200:
  *         description: Status proyek diperbarui
+ *       500:
+ *         description: Gagal memperbarui data proyek
  */
 router.post("/:projectId/progress", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), updateProgress);
+
+
+/**
+ * @swagger
+ * /api/projects/karyawan/evaluations:
+ *   get:
+ *     summary: jumlah project dan totoal evaluasi by karyawan
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Data proyek dan evaluasi berhasil diambil
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/karyawan/evaluations", verifyToken, verifyRole([ADMIN_ROLE]), getKaryawanProjectAndEvaluation);
 
 module.exports = router;

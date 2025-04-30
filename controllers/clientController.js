@@ -14,7 +14,7 @@ exports.createClient = async (req, res) => {
 
         res.status(201).json({ message: "Klien berhasil ditambahkan", data: client });
     } catch (error) {
-        res.status(500).json({ message: "Gagal menambahkan klien", error: error.message });
+        res.status(500).json({ message: "Gagal menambahkan data klien", error: error.message });
     }
 };
 
@@ -51,7 +51,7 @@ exports.updateClient = async (req, res) => {
         }
         res.status(200).json({ message: "Klien berhasil diperbarui", data: updatedClient });
     } catch (error) {
-        res.status(500).json({ message: "Gagal memperbarui klien", error: error.message });
+        res.status(500).json({ message: "Gagal memperbarui data klien", error: error.message });
     }
 };
 
