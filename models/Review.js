@@ -5,11 +5,10 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     required: [true, "Review tidak boleh kosong"],
   },
-  client_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Client",
-    required: [true, "ID Klien tidak boleh kosong"],
-  },
+  client_id: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Client", 
+    required: true },
   rating: {
     type: Number,
     min: 1,

@@ -1,37 +1,55 @@
 const Review = require("../models/Review");
-
-/**
- * @swagger
- * tags:
- *   name: Reviews
- *   description: Manajemen review perusahaan
- */
+const Client = require("../models/Client");
 
 exports.createReview = async (req, res) => {
     try {
-        const { review, client_id, rating } = req.body;
+      if (req.user.role !== "client") {
+        return res.status(403).json({ message: "Hanya klien yang dapat memberikan review." });
+      }
+  
+      const client = await Client.findOne({ user_id: req.user.id });
+  
+      if (!client) {
+        return res.status(404).json({ message: "Data klien tidak ditemukan." });
+      }
+  
+      const { review, rating } = req.body;
 
-        if (!review || !client_id || !rating) {
-            return res.status(400).json({ message: "Semua field (review, client_id, rating) harus diisi" });
-        }
-
-        const newReview = new Review({ review, client_id, rating });
-        await newReview.save();
-
-        res.status(201).json({ message: "Review berhasil ditambahkan", data: newReview });
+      const newReview = await Review.create({
+        review,
+        rating,
+        client_id: client._id,
+      });
+  
+      res.status(201).json({
+        message: "Review berhasil dibuat",
+        data: newReview,
+      });
+  
     } catch (error) {
-        res.status(500).json({ message: "Gagal menambahkan review", error: error.message });
+      console.error(error);
+      res.status(500).json({ message: "Terjadi kesalahan saat membuat review", error });
     }
-};
+  };
 
 exports.getAllReviews = async (req, res) => {
     try {
-        const reviews = await Review.find().populate("client_id", "name");
-        res.status(200).json({ message: "Data review berhasil diambil", data: reviews });
+      const reviews = await Review.find()
+        .populate("client_id", "nama_lengkap foto_profile") // ambil nama dan foto profil dari Client
+        .sort({ createdAt: -1 }); // urutkan dari yang terbaru (opsional)
+  
+      res.status(200).json({
+        message: "Data review berhasil diambil",
+        data: reviews,
+      });
     } catch (error) {
-        res.status(500).json({ message: "Gagal mengambil data review", error: error.message });
+      res.status(500).json({
+        message: "Gagal mengambil data review",
+        error: error.message,
+      });
     }
-};
+  };
+  
 
 exports.getReviewById = async (req, res) => {
     try {
@@ -45,6 +63,34 @@ exports.getReviewById = async (req, res) => {
     }
 };
 
+exports.getMyReviews = async (req, res) => {
+  try {
+    // Dapatkan ID user dari token (diset oleh middleware autentikasi)
+    const userId = req.user.id;
+
+    // Cari data client berdasarkan user_id
+    const client = await Client.findOne({ user_id: userId });
+
+    if (!client) {
+      return res.status(404).json({ message: "Client tidak ditemukan" });
+    }
+
+    // Ambil semua review milik client tersebut
+    const reviews = await Review.find({ client_id: client._id }).populate("client_id", "nama_lengkap");
+
+    res.status(200).json({
+      message: "Review milik user berhasil diambil",
+      data: reviews
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Gagal mengambil review milik user",
+      error: error.message
+    });
+  }
+};
+  
+  
 exports.updateReview = async (req, res) => {
     try {
         const updatedReview = await Review.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -57,6 +103,39 @@ exports.updateReview = async (req, res) => {
     }
 };
 
+exports.updateMyReview = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Cari client berdasarkan user yang login
+    const client = await Client.findOne({ user_id: userId });
+    if (!client) {
+      return res.status(404).json({ message: "Client tidak ditemukan" });
+    }
+
+    // Cari dan update review berdasarkan client_id
+    const updatedReview = await Review.findOneAndUpdate(
+      { client_id: client._id },
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedReview) {
+      return res.status(404).json({ message: "Review tidak ditemukan untuk client ini" });
+    }
+
+    res.status(200).json({
+      message: "Review berhasil diperbarui",
+      data: updatedReview
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Gagal memperbarui review",
+      error: error.message
+    });
+  }
+};
+  
 exports.deleteReview = async (req, res) => {
     try {
         const deletedReview = await Review.findByIdAndDelete(req.params.id);

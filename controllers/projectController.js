@@ -9,7 +9,7 @@ const { createRepository, updateRepository, getCommits } = require("../services/
 
 exports.createProject = async (req, res) => {
   try {
-    const { title, description, client_id, employees, deadline, github_token, status } = req.body;
+    const { title, description,framework, figma, client_id, employees, deadline, github_token, status } = req.body;
 
     const gitHubCreateResponse = await createRepository(github_token, title, description)
 
@@ -18,6 +18,8 @@ exports.createProject = async (req, res) => {
     const project = await Project.create({
       title,
       description,
+      framework,
+      figma,
       status,
       deadline,
       client: client_id,
@@ -45,18 +47,55 @@ exports.createProject = async (req, res) => {
   }
 };
 
-exports.getAllPublic = async (req, res) => {
+exports.getPublicProjectSummary = async (req, res) => {
   try {
-    const projects = await Project.find();
+    const projects = await Project.find().select("title description framework figma github_repo_url");
+
     res.status(200).json({
+      message: "Berhasil mengambil semua proyek",
       success: true,
       data: projects
     });
   } catch (error) {
-    // Menangani error dan mengembalikan respons dengan status 500
     res.status(500).json({
       success: false,
-      message: "Terjadi kesalahan saat mengambil proyek",
+      message: "Terjadi kesalahan saat mengambil ringkasan proyek",
+      error: error.message
+    });
+  }
+};
+
+exports.getProjectStatusSummary = async (req, res) => {
+  try {
+    const statusCounts = await Project.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          jumlah: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Inisialisasi agar semua status tetap muncul meskipun tidak ada datanya
+    const result = {
+      "Waiting List": 0,
+      "On Progress": 0,
+      "Completed": 0
+    };
+
+    // Update jumlah berdasarkan hasil aggregate
+    statusCounts.forEach(item => {
+      result[item._id] = item.jumlah;
+    });
+
+    res.status(200).json({
+      message: "Berhasil mendapatkan rekap status proyek",
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Gagal mengambil data status proyek",
       error: error.message
     });
   }
@@ -69,6 +108,7 @@ exports.getAllProjects = async (req, res) => {
 
     // Mengembalikan respons dengan status 200 dan data proyek
     res.status(200).json({
+      message: "Berhasil mengambil data proyek",
       success: true,
       data: projects
     });
@@ -219,6 +259,53 @@ exports.getProjectskaryawanklien = async (req, res) => {
   }
 };
 
+exports.getTotalProjectskaryawan = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    // Hanya untuk karyawan
+    if (userRole !== EMPLOYEE_ROLE) {
+      return res.status(403).json({ message: "Akses hanya diizinkan untuk karyawan" });
+    }
+
+    const employee = await Karyawan.findOne({ user: userId });
+    if (!employee) {
+      return res.status(404).json({ message: "Karyawan tidak ditemukan" });
+    }
+
+    // Ambil semua proyek yang dikerjakan oleh karyawan ini
+    const projects = await Project.find({ employees: employee._id }, '-github_commits');
+
+    // Hitung total proyek dan jumlah berdasarkan status
+    const totalProjects = projects.length;
+    const statusCount = {
+      "Waiting List": 0,
+      "On Progress": 0,
+      "Completed": 0
+    };
+
+    projects.forEach(project => {
+      const status = project.status;
+      if (statusCount[status] !== undefined) {
+        statusCount[status]++;
+      }
+    });
+
+    res.status(200).json({
+      message: "Berhasil menghitung total proyek karyawan",
+      data: {
+        totalProjects,
+        statusSummary: statusCount
+      }
+    });
+
+  } catch (error) {
+    console.error("Error saat mengambil data proyek karyawan:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
 
 exports.updateProject = async (req, res) => {
   try {
@@ -226,15 +313,13 @@ exports.updateProject = async (req, res) => {
 
     if (req.user.role === ADMIN_ROLE) {
       const {
-        title,
         description,
         client_id,
         employees,
         deadline,
-        github_token,
         status,
         sdlc_progress,
-        image_to_delete 
+        image_to_delete
       } = req.body;
 
       const project = await Project.findOne({ _id: projectId });
@@ -242,46 +327,14 @@ exports.updateProject = async (req, res) => {
         return res.status(404).json({ message: "Proyek tidak ditemukan" });
       }
 
-      try {
-        const commits = await getCommits(
-          project.github_fine_grain_token,
-          project.github_username,
-          project.github_repo_name
-        );
-  
-        const projectCommits = commits.map(item => ({
-          message: item.commit.message,
-          author: item.commit.author.name,
-          date: item.commit.author.date,
-          url: item.html_url
-        }));
-  
-        project.github_commits = projectCommits;
-      } catch (error) {
-        
-      }
-
-      // Handle update GitHub repo jika ada perubahan title/description
-      let updateRepositoryResponse = null;
-      if ((title || description) && (title !== "" || description !== "")) {
-        updateRepositoryResponse = await updateRepository(
-          github_token,
-          project.github_username,
-          project.github_repo_name,
-          title || project.title,
-          description || project.description
-        );
-      }
-
       // ==== Handle Gambar ====
-      // 1. Hapus image berdasarkan index
+      // 1. Hapus gambar berdasarkan index
       if (image_to_delete) {
         let deleteIndexes = Array.isArray(image_to_delete)
           ? image_to_delete.map(i => parseInt(i))
           : [parseInt(image_to_delete)];
 
-        // Sort descending biar index nggak bergeser pas splice
-        deleteIndexes.sort((a, b) => b - a);
+        deleteIndexes.sort((a, b) => b - a); // agar index tidak geser saat splice
 
         for (let index of deleteIndexes) {
           if (project.images && index >= 0 && index < project.images.length) {
@@ -290,14 +343,13 @@ exports.updateProject = async (req, res) => {
         }
       }
 
-      // 2. Tambahkan image baru jika ada upload
+      // 2. Tambah gambar baru (jika ada upload)
       if (req.files && req.files.length > 0) {
         const uploadedPaths = req.files.map(file => "/uploads/" + file.filename);
         project.images.push(...uploadedPaths);
       }
 
-      // ==== Update data lainnya ====
-      project.title = title || project.title;
+      // ==== Update data proyek lainnya ====
       project.description = description || project.description;
       project.client = client_id || project.client;
       project.employees = employees || project.employees;
@@ -306,25 +358,28 @@ exports.updateProject = async (req, res) => {
       project.sdlc_progress = sdlc_progress
         ? JSON.parse(sdlc_progress)
         : project.sdlc_progress;
-      project.github_fine_grain_token = github_token || project.github_fine_grain_token;
-
-      if (updateRepositoryResponse) {
-        project.github_repo_name = updateRepositoryResponse.name;
-        project.github_repo_url = `https://github.com/${updateRepositoryResponse.full_name}`;
-      }
 
       const updatedProject = await project.save();
 
-      return res.status(200).json({ message: "Proyek berhasil diperbarui", updatedProject });
+      return res.status(200).json({
+        message: "Proyek berhasil diperbarui",
+        updatedProject
+      });
+    } else {
+      return res.status(403).json({ message: "Akses ditolak" });
     }
-
   } catch (error) {
-    return res.status(500).json({ message: "Gagal memperbarui data proyek", error: error.message, errorstack: error });
+    return res.status(500).json({
+      message: "Gagal memperbarui data proyek",
+      error: error.message,
+      errorstack: error
+    });
   }
 };
 
+
 exports.deleteProject = async (req, res) => {
-  if (req.user.role !== "manager") {
+  if (req.user.role !== "manager/admin") {
     return res.status(403).json({ message: "Hanya Manager yang dapat menghapus proyek." });
   }
 
@@ -361,17 +416,6 @@ exports.updateProgress = async (req, res) => {
     if (!project.employees.includes(req.user.userId) && !project.manager == req.user.id) {
       return res.status(403).json({ message: "Anda tidak memiliki akses ke proyek ini." });
     }
-
-    const commits = await getCommits(project.github_fine_grain_token, project.github_username, project.github_repo_name)
-
-    const projectCommits = commits.map(item => ({
-      message: item.commit.message,
-      author: item.commit.author.name,
-      date: item.commit.author.date,
-      url: item.html_url
-    }))
-
-    project.github_commits = projectCommits
 
     project.sdlc_progress = {
       analisis,

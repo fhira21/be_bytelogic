@@ -75,6 +75,49 @@ exports.getUserById = async (req, res) => {
 
 };
 
+exports.getUserProfile = async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    let targetUserId;
+
+    if (loggedInUser.role === 'karyawan' || loggedInUser.role === 'klien') {
+      // Jika karyawan atau klien, hanya bisa akses data dirinya sendiri
+      targetUserId = loggedInUser.id;
+    } else if (loggedInUser.role === 'manajer' || loggedInUser.role === 'admin') {
+      // Jika manajer/admin, ambil berdasarkan params.id
+      if (!req.params.id) {
+        return res.status(400).json({ message: "User ID harus disediakan." });
+      }
+      targetUserId = req.params.id;
+    } else {
+      return res.status(403).json({ message: "Peran tidak dikenali." });
+    }
+
+    const user = await User.findById(targetUserId);
+    if (!user) {
+      return res.status(404).json({ message: "User tidak ditemukan." });
+    }
+
+    // Ambil detail tambahan dari tabel karyawan/klien jika role-nya cocok
+    let profileData = null;
+    if (user.role === 'karyawan') {
+      profileData = await Karyawan.findOne({ userId: user._id });
+    } else if (user.role === 'klien') {
+      profileData = await Klien.findOne({ userId: user._id });
+    }
+
+    res.status(200).json({
+      user,
+      profile: profileData || null
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Terjadi kesalahan saat mengambil profil pengguna." });
+  }
+};
+
+
+
 exports.resetPassword = async (req, res) => {
     try {
         const { username, newPassword } = req.body;

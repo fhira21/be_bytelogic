@@ -1,5 +1,13 @@
 const express = require("express");
-const { createReview, getAllReviews, getReviewById, updateReview, deleteReview } = require("../controllers/reviewController");
+const {
+  createReview,
+  getAllReviews,
+  getReviewById,
+  getMyReviews,
+  updateMyReview,
+  updateReview,
+  deleteReview,
+} = require("../controllers/reviewController");
 const { CLIENT_ROLE, ADMIN_ROLE } = require("../constants/role");
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
@@ -24,22 +32,24 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - review
+ *               - rating
  *             properties:
  *               review:
  *                 type: string
  *                 example: "Proyek selesai tepat waktu dan hasilnya sangat memuaskan!"
- *               client_id:
- *                 type: string
- *                 example: "650c20f2a7d1d0b9d7c8d24e"
  *               rating:
  *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
  *                 example: 5
  *     responses:
  *       201:
  *         description: Review berhasil ditambahkan
  *       400:
  *         description: Semua field (review,client_id, rating) harus diisi
- *       500: 
+ *       500:
  *         description: Gagal menambahkan review
  */
 router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createReview);
@@ -60,9 +70,25 @@ router.get("/", getAllReviews);
 
 /**
  * @swagger
+ * /api/reviews/myreviews:
+ *   get:
+ *     summary: Ambil semua review milik client yang sedang login
+ *     tags: [Reviews]
+ *     responses:
+ *       200:
+ *         description: Review berhasil diambil
+ *       403:
+ *         description: Akses ditolak, token atau peran tidak sesuai
+ *       500:
+ *         description: Server error
+ */
+router.get("/myreviews", verifyToken, verifyRole([CLIENT_ROLE]), getMyReviews);
+
+/**
+ * @swagger
  * /api/reviews/{id}:
  *   get:
- *     summary: Ambil review berdasarkan ID
+ *     summary: Ambil data review berdasarkan ID Login
  *     tags: [Reviews]
  *     parameters:
  *       - in: path
@@ -79,13 +105,13 @@ router.get("/", getAllReviews);
  *       500:
  *         description: Gagal mengambil data review
  */
-router.get("/:id", getReviewById);
+router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE]), getReviewById);
 
 /**
  * @swagger
- * /api/reviews/{id}:
+ * /api/reviews/myreview:
  *   put:
- *     summary: Perbarui review berdasarkan ID
+ *     summary: Update review milik client yang sedang login
  *     tags: [Reviews]
  *     requestBody:
  *       required: true
@@ -96,10 +122,44 @@ router.get("/:id", getReviewById);
  *             properties:
  *               review:
  *                 type: string
- *                 example: "Update ulasan proyek, sangat baik!"
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *     responses:
+ *       200:
+ *         description: Review berhasil diperbarui
+ *       404:
+ *         description: Review atau client tidak ditemukan
+ *       500:
+ *         description: Server error
+ */
+router.put("/myreview", verifyToken, verifyRole([CLIENT_ROLE]), updateMyReview);
+
+/**
+ * @swagger
+ * /api/reviews/update:
+ *   put:
+ *     summary: Perbarui review berdasarkan ID
+ *     tags: [Reviews]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - review
+ *               - rating
+ *             properties:
+ *               review:
+ *                 type: string
+ *                 example: "Proyek selesai tepat waktu dan hasilnya sangat memuaskan!"
  *               rating:
  *                 type: number
- *                 example: 4
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 example: 5
  *     responses:
  *       200:
  *         description: Data review berhasil diambil
@@ -108,7 +168,7 @@ router.get("/:id", getReviewById);
  *       500:
  *         description: Gagal mengambil data review
  */
-router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateReview);
+router.put("/update", verifyToken, verifyRole([CLIENT_ROLE]), updateReview);
 
 /**
  * @swagger
@@ -131,6 +191,11 @@ router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE]), updateReview);
  *       500:
  *         description: Gagal mengambil data review
  */
-router.delete("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), deleteReview);
+router.delete(
+  "/:id",
+  verifyToken,
+  verifyRole([CLIENT_ROLE, ADMIN_ROLE]),
+  deleteReview
+);
 
 module.exports = router;

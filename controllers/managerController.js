@@ -33,6 +33,41 @@ exports.getManagerById = async (req, res) => {
     }
 };
 
+
+exports.getManagerProfile = async (req, res) => {
+    try {
+      const userId = req.user.id; // ini user_id dari token JWT
+      const manager = await Manager.findOne({ user_id: userId });
+  
+      if (!manager) {
+        return res.status(404).json({ message: "Profil manager tidak ditemukan" });
+      }
+  
+      res.status(200).json({
+        message: "Profil manager berhasil diambil",
+        data: manager,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Gagal mengambil profil manager", error: error.message });
+    }
+  };
+  
+  exports.updateManagerProfile = async (req, res) => {
+    try {
+      const userId = req.user.id; // Ambil user_id dari token
+      const updatedManager = await Manager.findOneAndUpdate({ user_id: userId }, req.body, { new: true });
+  
+      if (!updatedManager) {
+        return res.status(404).json({ message: "Data manajer tidak ditemukan" });
+      }
+  
+      res.status(200).json({ message: "Data manajer berhasil diperbarui", data: updatedManager });
+    } catch (error) {
+      res.status(500).json({ message: "Gagal memperbarui data manajer", error: error.message });
+    }
+  };  
+  
+
 exports.updateManager = async (req, res) => {
     try {
         const updatedManager = await Manager.findByIdAndUpdate(req.params.id, req.body, { new: true });

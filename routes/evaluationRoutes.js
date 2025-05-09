@@ -1,7 +1,16 @@
-// routes/evaluationRoutes.js
 const express = require("express");
-const { createEvaluation, getKaryawanProjectAndDetailedEvaluation, getAllEvaluations,getAllEvaluationskaryawan, getEvaluationById, updateEvaluation, deleteEvaluation } = require("../controllers/evaluationController");
-const { CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE } = require("../constants/role");
+const {
+  createEvaluation,
+  getKaryawanProjectAndDetailedEvaluation,
+  getAllEvaluations,
+  getMyEvaluationsKaryawan,
+  getEvaluationById,
+  updateEvaluation,
+  deleteEvaluation
+} = require("../controllers/evaluationController");
+// const { CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE } = require("../constants/role");
+const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
+
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -10,14 +19,14 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Evaluations
- *   description: Manajemen data untuk Evaluasi karyawan
+ *   description: Manajemen data evaluasi karyawan
  */
 
 /**
  * @swagger
  * /api/evaluations:
  *   post:
- *     summary: Tambah evaluasi karyawan oleh klien
+ *     summary: Buat evaluasi karyawan oleh klien
  *     tags: [Evaluations]
  *     requestBody:
  *       required: true
@@ -31,7 +40,7 @@ const router = express.Router();
  *                 example: "67de485e99294aa9f00d54b6"
  *               scores:
  *                 type: array
- *                 description: Daftar skor penilaian, urut sesuai indikator yang ditentukan
+ *                 description: Daftar skor penilaian, urut sesuai indikator
  *                 items:
  *                   type: number
  *                   minimum: 1
@@ -43,16 +52,16 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Evaluasi berhasil ditambahkan
- *       404:
- *         description: Project not found!
  *       400:
- *         description: Client belum memiliki project
+ *         description: Client belum memiliki project atau data tidak lengkap
  *       401:
  *         description: Semua field wajib diisi
  *       403:
- *         description: Score tidak sesuai dengan aspek penilaian
+ *         description: Skor tidak sesuai aspek penilaian
+ *       404:
+ *         description: Proyek tidak ditemukan
  *       500:
- *         description: Terjadi kesalahan
+ *         description: Terjadi kesalahan pada server
  */
 router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createEvaluation);
 
@@ -60,43 +69,45 @@ router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createEvaluation);
  * @swagger
  * /api/evaluations:
  *   get:
- *     summary: Ambil semua evaluasi yang ada
+ *     summary: Ambil semua evaluasi (Admin)
  *     tags: [Evaluations]
  *     responses:
  *       200:
  *         description: Data evaluasi berhasil diambil
  *       500:
- *         description: Terjadi kesalahan
+ *         description: Terjadi kesalahan pada server
  */
-router.get("/", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]),  getAllEvaluations);
+router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllEvaluations);
 
 /**
  * @swagger
- * /api/evaluations/evaluationkaraywan:
+ * /api/evaluations/evaluationmykaryawan:
  *   get:
- *     summary: Ambil semua evaluasi karyawan
+ *     summary: Ambil semua evaluasi by karyawan yang login
  *     tags: [Evaluations]
  *     responses:
  *       200:
- *         description: Data evaluasi berhasil diambil
+ *         description: Data evaluasi berhasil ditampilkan
+ *       404: 
+ *         description: Belum ada evaluasi untuk proyek yang dikerjakan.
  *       500:
  *         description: Terjadi kesalahan
  */
-router.get("/evaluationkaraywan", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]),  getAllEvaluationskaryawan);
+router.get("/evaluationmykaryawan", verifyToken, verifyRole([EMPLOYEE_ROLE]), getMyEvaluationsKaryawan);
 
 /**
  * @swagger
  * /api/evaluations/karyawan/evaluasi-detailed:
  *   get:
- *     summary: Ambil semua evaluasi per employee
+ *     summary: Ambil semua evaluasi per karyawan (jml proyek, total evaluasi, detail evaluasi)
  *     tags: [Evaluations]
  *     responses:
  *       200:
  *         description: Data evaluasi berhasil diambil
  *       500:
- *         description: Error fetching karyawan evaluation data
+ *         description: Terjadi kesalahan saat mengambil data evaluasi
  */
-router.get("/karyawan/evaluasi-detailed",verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getKaryawanProjectAndDetailedEvaluation);
+router.get("/karyawan/evaluasi-detailed", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getKaryawanProjectAndDetailedEvaluation);
 
 /**
  * @swagger
@@ -117,7 +128,7 @@ router.get("/karyawan/evaluasi-detailed",verifyToken, verifyRole([EMPLOYEE_ROLE,
  *       404:
  *         description: Evaluasi tidak ditemukan
  *       500:
- *         description : terjadi kesalahan
+ *         description: Terjadi kesalahan pada server
  */
 router.get("/:id", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getEvaluationById);
 
@@ -127,6 +138,13 @@ router.get("/:id", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getEval
  *   put:
  *     summary: Perbarui evaluasi berdasarkan ID
  *     tags: [Evaluations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "60c72b2f9b1d8e5a7c8d24e3"
  *     requestBody:
  *       required: true
  *       content:
@@ -143,17 +161,14 @@ router.get("/:id", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getEval
  *     responses:
  *       200:
  *         description: Evaluasi berhasil diperbarui
- *       404:
- *         description: Evaluasi tidak ditemukan atau anda tidak memiliki akases
  *       400:
- *         description: Score tidak sesuai dengan aspek penilaian
- *       401:
- *         deskripsi: Skor untuk aspek
+ *         description: Skor tidak sesuai aspek penilaian
+ *       404:
+ *         description: Evaluasi tidak ditemukan atau akses ditolak
  *       500:
- *         deskripsi: Terjadi kesalahan
+ *         description: Terjadi kesalahan pada server
  */
 router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateEvaluation);
-
 
 /**
  * @swagger
@@ -171,10 +186,10 @@ router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateEva
  *     responses:
  *       200:
  *         description: Evaluasi berhasil dihapus
- *       404: 
- *         deskription: Evaluasi tidak ditemukan
+ *       404:
+ *         description: Evaluasi tidak ditemukan
  *       500:
- *         description: Terjadi Kesalahan
+ *         description: Terjadi kesalahan pada server
  */
 router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), deleteEvaluation);
 

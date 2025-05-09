@@ -2,11 +2,13 @@ const express = require("express");
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 const {
   createProject,
-  getAllPublic,
+  getPublicProjectSummary,
   getProjectskaryawanklien,
   updateProject,
   deleteProject,
   getAllProjects,
+  getProjectStatusSummary,
+  getTotalProjectskaryawan,
   getProjectById,
   updateProgress
 } = require("../controllers/projectController");
@@ -41,6 +43,12 @@ const router = express.Router();
  *               description:
  *                 type: string
  *                 example: "Proyek untuk membuat sistem evaluasi"
+ *               framework:
+ *                 type: string
+ *                 example: "Be apa, Fe apa"
+ *               figma:
+ *                 type: string
+ *                 example: "figma.com"
  *               client_id:
  *                 type: string
  *                 example: "650c20f2a7d1d0b9d7c8d24e"
@@ -74,7 +82,7 @@ router.post("/", verifyToken, verifyRole([ADMIN_ROLE]), upload.array('images', 1
 
 /**
  * @swagger
- * /api/projects/public:
+ * /api/projects/summary:
  *   get:
  *     summary: Mendapatkan semua proyek landingpage
  *     tags: [Projects]
@@ -86,31 +94,44 @@ router.post("/", verifyToken, verifyRole([ADMIN_ROLE]), upload.array('images', 1
  *       500:
  *         description: Terjadi kesalahan saat mengambil proyek
  */
-router.get('/public', getAllPublic);
+router.get("/summary", getPublicProjectSummary);
 
 /**
  * @swagger
- * /api/projects:
+ * /api/projects/status-summary:
  *   get:
- *     summary: mengambil semua data project (admin)
- *     description: Retrieve a list of all projects.
+ *     summary: Mengambil total project by status
  *     tags:
  *       - Projects
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: A list of projects.
+ *         description: Berhasil mendapatkan rekap status proyek.
  *       500:
  *         description: Terjadi kesalahan saat mengambil proyek.
  */
-router.get('/', verifyToken, verifyRole([ADMIN_ROLE, EMPLOYEE_ROLE]), getAllProjects);
+router.get("/status-summary", verifyToken, verifyRole([ADMIN_ROLE]), getProjectStatusSummary);
+
+/**
+ * @swagger
+ * /api/projects/total-project:
+ *   get:
+ *     summary: Mendapatkan detail total project untuk dashboard karyawan
+ *     tags: [Projects]
+ *     responses:
+ *       200:
+ *         description: Data proyek berhasil diambil
+ *       500:
+ *         description: Gagal mengambil data proyek
+ */
+router.get("/total-project", verifyToken, verifyRole([ADMIN_ROLE]), getTotalProjectskaryawan);
 
 /**
  * @swagger
  * /api/projects/karyawan/klien:
  *   get:
- *     summary: Mendapatkan daftar proyek berdasarkan peran pengguna (Klien atau Karyawan)
+ *     summary: Mendapatkan daftar proyek berdasarkan id (Klien atau Karyawan) yang login
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
@@ -124,6 +145,22 @@ router.get('/', verifyToken, verifyRole([ADMIN_ROLE, EMPLOYEE_ROLE]), getAllProj
  */
 router.get('/karyawan/klien', verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE]), getProjectskaryawanklien);
 
+/**
+ * @swagger
+ * /api/projects:
+ *   get:
+ *     summary: Mengambil semua data project dengan detail data klien dan karyawan
+ *     tags:
+ *       - Projects
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Berhasil menampilkan data proyek.
+ *       500:
+ *         description: Terjadi kesalahan saat mengambil proyek.
+ */
+router.get('/', verifyToken, verifyRole([ADMIN_ROLE]), getAllProjects);
 
 /**
  * @swagger
@@ -166,12 +203,15 @@ router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *           schema:
  *             type: object
  *             properties:
- *               title:
- *                 type: string
- *                 example: "Sistem Evaluasi Update"
  *               description:
  *                 type: string
  *                 example: "Deskripsi baru proyek"
+ *               framework:
+ *                 type: string
+ *                 example: "Be apa, Fe apa"
+ *               figma:
+ *                 type: string
+ *                 example: "figma.com"
  *               client_id:
  *                 type: string
  *                 example: "650c20f2a7d1d0b9d7c8d24e"
@@ -180,21 +220,18 @@ router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *                 items:
  *                   type: string
  *                 example: ["650c20f2a7d1d0b9d7c8d241"]
- *               status:
- *                 type: string
- *                 enum: ["Waiting List", "On Progress", "Completed"]
  *               deadline:
  *                 type: string
  *                 format: date
  *                 example: "2025-06-15"
+ *               status:
+ *                 type: string
+ *                 enum: ["Waiting List", "On Progress", "Completed"]
  *               sdlc_progress:
  *                 type: string
  *                 format: json
  *                 description: Objek progress SDLC dalam bentuk string JSON
  *                 example: '{"analisis": 20, "desain": 0, "implementasi": 0, "pengujian": 0, "maintenance": 0}'
- *               github_token:
- *                 type: string
- *                 example: "ghp_1234567890abcdef"
  *               image_to_delete:
  *                 type: array
  *                 items:
@@ -212,7 +249,6 @@ router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *         description: Gagal memperbarui data proyek
  */
 router.put("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), upload.array('images', 10), updateProject);
-
 
 /**
  * @swagger
@@ -239,7 +275,7 @@ router.delete("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), deleteProjec
  * @swagger
  * /api/projects/{projectId}/progress:
  *   post:
- *     summary: Update progress SDLC (khusus Karyawan)
+ *     summary: Update progress proyek SDLC
  *     tags: [Projects]
  *     parameters:
  *       - in: path

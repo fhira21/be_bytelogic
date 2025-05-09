@@ -18,6 +18,8 @@ const SDLCProgress = new mongoose.Schema({
 const ProjectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
+  framework: { type: String, required: true},
+  figma: { type: String, required: true},
   status: {
     type: String,
     enum: ["Waiting List", "On Progress", "Completed"],

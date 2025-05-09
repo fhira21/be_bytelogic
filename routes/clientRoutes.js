@@ -1,5 +1,13 @@
 const express = require("express");
-const { createClient, getAllClients, getClientById, updateClient, deleteClient } = require("../controllers/clientController");
+const {
+  createClient,
+  getAllClients,
+  getClientProfile,
+  getClientById,
+  updateClientProfile,
+  updateClient,
+  deleteClient,
+} = require("../controllers/clientController");
 const { verifyRole, verifyToken } = require("../middlewares/authMiddleware");
 const { CLIENT_ROLE, ADMIN_ROLE } = require("../constants/role");
 
@@ -24,7 +32,14 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - user_id
+ *               - nama_lengkap
+ *               - email
  *             properties:
+ *               user_id:
+ *                 type: string
+ *                 example: "68147731885820689d6b714d"
  *               nama_lengkap:
  *                 type: string
  *                 example: "John Doe"
@@ -37,13 +52,16 @@ const router = express.Router();
  *               alamat:
  *                 type: string
  *                 example: "Jl. Contoh No. 123"
+ *               foto_profile:
+ *                 type: string
+ *                 example: "/uploads/foto.jpg"
  *     responses:
  *       201:
  *         description: Data klien berhasil ditambahkan
  *       400:
- *         description: Email sudah mendaftar sebagai klien lain
+ *         description: Email sudah terdaftar sebagai klien lain
  *       500:
- *         description:Gagal menambahkan data klien
+ *         description: Gagal menambahkan data klien
  */
 router.post("/", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), createClient);
 
@@ -60,6 +78,22 @@ router.post("/", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), createClien
  *         description: Gagal mengambil data klien
  */
 router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllClients);
+
+/**
+ * @swagger
+ * /api/clients/profile:
+ *   get:
+ *     summary: Ambil data profil client yang sedang login
+ *     tags: [Clients]
+ *     responses:
+ *       200:
+ *         description: Data profil client berhasil diambil
+ *       404:
+ *         description: Data client tidak ditemukan
+ *       500:
+ *         description: Gagal mengambil data profil client
+ */
+router.get("/profile", verifyToken, verifyRole([CLIENT_ROLE]), getClientProfile);
 
 /**
  * @swagger
@@ -82,15 +116,15 @@ router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllClients);
  *       404:
  *         description: Klien tidak ditemukan
  *       500:
- *         description: Gagal mengambil datd
+ *         description: Gagal mengambil data klien
  */
-router.get("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), getClientById);
+router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), getClientById);
 
 /**
  * @swagger
- * /api/clients/{id}:
+ * /api/clients/profileupdate:
  *   put:
- *     summary: Perbarui data klien berdasarkan ID
+ *     summary: Perbarui data profil klien berdasarkan akun login
  *     tags: [Clients]
  *     requestBody:
  *       required: true
@@ -99,18 +133,82 @@ router.get("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), getClientB
  *           schema:
  *             type: object
  *             properties:
+ *               nama_lengkap:
+ *                 type: string
+ *                 example: "John Doe"
+ *               email:
+ *                 type: string
+ *                 example: "johndoe@example.com"
+ *               nomor_telepon:
+ *                 type: string
+ *                 example: "08123456789"
  *               alamat:
  *                 type: string
- *                 example: "Jl. Baru No. 456"
+ *                 example: "Jl. Contoh No. 123"
+ *               foto_profile:
+ *                 type: string
+ *                 example: "/uploads/foto.jpg"
  *     responses:
  *       200:
  *         description: Data klien berhasil diperbarui
  *       404:
- *         description:Klien tidak ditemukan
+ *         description: Klien tidak ditemukan
  *       500:
  *         description: Gagal memperbarui data klien
  */
-router.put("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateClient);
+router.put("/profileupdate", verifyToken, verifyRole([CLIENT_ROLE]), updateClientProfile);
+
+/**
+ * @swagger
+ * /api/clients/{id}:
+ *   put:
+ *     summary: Perbarui data klien berdasarkan ID
+ *     tags: [Clients]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "68147731885820689d6b714d"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - nama_lengkap
+ *               - email
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 example: "68147731885820689d6b714d"
+ *               nama_lengkap:
+ *                 type: string
+ *                 example: "John Doe"
+ *               email:
+ *                 type: string
+ *                 example: "johndoe@example.com"
+ *               nomor_telepon:
+ *                 type: string
+ *                 example: "08123456789"
+ *               alamat:
+ *                 type: string
+ *                 example: "Jl. Contoh No. 123"
+ *               foto_profile:
+ *                 type: string
+ *                 example: "/uploads/foto.jpg"
+ *     responses:
+ *       200:
+ *         description: Data klien berhasil diperbarui
+ *       404:
+ *         description: Klien tidak ditemukan
+ *       500:
+ *         description: Gagal memperbarui data klien
+ */
+router.put("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateClient);
 
 /**
  * @swagger
@@ -129,7 +227,7 @@ router.put("/:id", verifyRole, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), updateClie
  *       200:
  *         description: Data klien berhasil dihapus
  *       404:
- *         description:Klien tidak ditemukan
+ *         description: Klien tidak ditemukan
  *       500:
  *         description: Gagal menghapus data klien
  */

@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
+const { verifyRole, verifyToken, authMiddleware } = require("../middlewares/authMiddleware");
+const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
+
 
 /**
  * @swagger
@@ -27,11 +30,14 @@ const userController = require("../controllers/userController");
  *             properties:
  *               username:
  *                 type: string
+ *                 example : manager
  *               password:
- *                 type: password
+ *                 type: string
+ *                 example : password
  *               role:
- *                 type: manager/admin
+ *                 type: string
  *                 description: Role user (manager/admin, employee, client)
+ *                 example : manager/admin
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -59,9 +65,11 @@ router.post("/register", userController.registerUser);
  *               - password
  *             properties:
  *               username:
- *                 type: karyawan
+ *                 type: string
+ *                 example: uciadmin
  *               password:
- *                 type: password
+ *                 type: string
+ *                 example: password123
  *     responses:
  *       200:
  *         description: Login successful
@@ -97,7 +105,23 @@ router.post("/login", userController.loginUser);
  *       500:
  *         description: Internal server error
  */
-router.get("/:id", userController.getUserById);
+router.get("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE]), userController.getUserById);
+
+/**
+ * @swagger
+ * /api/users/profile/:id?:
+ *   get:
+ *     summary: Tampil data profil user
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Data user ditemukan
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/profile", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE]), userController.getUserProfile);
 
 /**
  * @swagger
@@ -129,7 +153,7 @@ router.get("/:id", userController.getUserById);
  *       500:
  *         description: Internal server error
  */
-router.put("/reset-password", userController.resetPassword);
+router.put("/reset-password", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE]), userController.resetPassword);
 
 /**
  * @swagger
@@ -152,6 +176,6 @@ router.put("/reset-password", userController.resetPassword);
  *       500:
  *         description: Internal server error
  */
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), userController.deleteUser);
 
 module.exports = router;
