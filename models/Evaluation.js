@@ -4,37 +4,40 @@ const evaluationSchema = new mongoose.Schema({
   project_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Project",
-    required: true
+    required: true,
   },
   client_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Client",
-    required: true
+    required: true,
   },
-  employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Karyawan" }],
+  employees: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Karyawan" 
+  }],
   evaluation_date: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   results: [
     {
       aspect_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "EvaluationAspect",
-        required: true
+        required: true,
       },
       selected_criteria: {
         description: String,
-        value: { type: Number, min: 1, max: 5 }
-      }
-    }
+        value: { type: Number, min: 1, max: 5 },
+      },
+    },
   ],
   final_score: {
-    type: Number
+    type: Number,
   },
   comments: {
-    type: String
-  }
+    type: String,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Evaluation", evaluationSchema);

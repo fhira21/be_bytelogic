@@ -9,101 +9,35 @@ const Karyawan = require("../models/Karyawan");
 const mongoose = require("mongoose");
 const { CLIENT_ROLE } = require("../constants/role");
 
-// exports.createEvaluation = async (req, res) => {
-//   try {
-//       const { scores, comments, project_id } = req.body;
-
-//       let client_id;
-
-//       if (req.user.role == ADMIN_ROLE)
-//           client_id = req.body.client_id
-//       else
-//           client_id = req.user.client._id
-
-//       const project = await Project.findOne({ client: client_id, _id: project_id })
-//       if (!project)
-//           return res.status(404).json({ message: "Project not found!" })
-
-//       const { employees } = project
-
-//       if (!project)
-//           return res.status(400).json({ message: "Client belum memiliki project" })
-
-//       if (!scores)
-//           return res.status(400).json({ message: "Semua field wajib diisi" });
-
-//       const evaluationAspects = await EvaluationAspect.find({}).sort({ _id: 1 })
-
-//       if (scores.length != evaluationAspects.length)
-//           return res.status(400).json({ message: "Score tidak sesuai dengan aspek penilaian" });
-
-//       let evaluationResult = []
-
-//       let maxScore = 0
-//       let tempScore = 0
-
-//       evaluationAspects.forEach((aspect, index) => {
-//           const currentScore = parseInt(scores[index])
-//           tempScore += currentScore * aspect.weight
-//           maxScore += aspect.criteria.length
-//           evaluationResult.push({
-//               aspect_id: aspect._id,
-//               selected_criteria: {
-//                   description: aspect.criteria[currentScore - 1].label,
-//                   value: currentScore,
-//               }
-//           })
-//       })
-
-//       const finalScore = tempScore / maxScore * 100;
-
-//       const newEvaluation = new Evaluation({
-//           project_id,
-//           client_id,
-//           employees,
-//           results: evaluationResult,
-//           final_score: finalScore,
-//           comments
-//       });
-
-//       await newEvaluation.save();
-//       res.status(201).json({ message: "Evaluasi berhasil ditambahkan", data: newEvaluation });
-//   } catch (error) {
-//       res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
-//   }
-// };
 
 exports.createEvaluation = async (req, res) => {
   try {
-    const { scores, comments, project_id } = req.body;
+    const { project_id, scores, comments } = req.body;
 
-    // Mengambil client_id, pastikan sesuai dengan data login
-    let client_id;
-    if (req.user.role === CLIENT_ROLE) {
-      client_id = req.body.client_id;
-    } else {
-      client_id = req.user.client._id;
-    }
-
-    // Mengambil project berdasarkan client_id dan project_id
-    const project = await Project.findOne({ client: client_id, _id: project_id });
+    // Ambil data proyek lengkap (termasuk client dan employees)
+    const project = await Project.findById(project_id).populate("client employees");
 
     if (!project) {
       return res.status(404).json({ message: "Proyek tidak ditemukan!" });
     }
 
-    // Jika project ditemukan, lanjutkan dengan logika evaluasi
-    const { employees } = project;
+    // Cek apakah proyek sudah memiliki evaluasi
+    const existingEvaluation = await Evaluation.findOne({ project_id });
+    if (existingEvaluation) {
+      return res.status(400).json({ message: "Proyek ini sudah memiliki evaluasi!" });
+    }
 
-    // Melanjutkan logika evaluasi...
-    if (!scores) {
-      return res.status(400).json({ message: "Semua field harus diisi" });
+    const client_id = project.client._id;
+    const employees = project.employees.map(emp => emp._id);
+
+    if (!scores || !Array.isArray(scores)) {
+      return res.status(400).json({ message: "Skor evaluasi tidak valid atau kosong" });
     }
 
     const evaluationAspects = await EvaluationAspect.find({}).sort({ _id: 1 });
 
     if (scores.length !== evaluationAspects.length) {
-      return res.status(400).json({ message: "Jumlah skor tidak sesuai dengan aspek evaluasi" });
+      return res.status(400).json({ message: "Jumlah skor tidak sesuai dengan jumlah aspek evaluasi" });
     }
 
     let evaluationResult = [];
@@ -112,37 +46,62 @@ exports.createEvaluation = async (req, res) => {
 
     evaluationAspects.forEach((aspect, index) => {
       const currentScore = parseInt(scores[index]);
+
+      // Validasi skor 1–5
+      if (currentScore < 1 || currentScore > 5) {
+        return res.status(400).json({ message: `Skor tidak valid pada aspek ${aspect.nama_aspek}` });
+      }
+
       tempScore += currentScore * aspect.weight;
       maxScore += aspect.criteria.length;
+
       evaluationResult.push({
         aspect_id: aspect._id,
         selected_criteria: {
           description: aspect.criteria[currentScore - 1].label,
           value: currentScore,
-        }
+        },
       });
     });
 
     const finalScore = (tempScore / maxScore) * 100;
 
+    // Buat evaluasi baru
     const newEvaluation = new Evaluation({
       project_id,
       client_id,
       employees,
       results: evaluationResult,
       final_score: finalScore,
-      comments
+      comments,
     });
 
     await newEvaluation.save();
-    res.status(201).json({ message: "Evaluasi berhasil ditambahkan", data: newEvaluation });
+
+    // Populate data untuk ditampilkan nama proyek, klien, dan karyawan
+    const populatedEvaluation = await Evaluation.findById(newEvaluation._id)
+      .populate({ path: 'project_id', select: 'title' })
+      .populate({ path: 'client_id', select: 'nama_lengkap' })
+      .populate({ path: 'employees', select: 'nama_lengkap' });
+
+    res.status(201).json({
+      message: "Evaluasi berhasil ditambahkan",
+      data: {
+        evaluation: populatedEvaluation,
+        client_name: populatedEvaluation.client_id.nama_lengkap,
+        employees: populatedEvaluation.employees.map(emp => emp.nama_lengkap),
+        project_title: populatedEvaluation.project_id.title
+      },
+    });
+
   } catch (error) {
-    console.error(error);  // Log kesalahan untuk debugging
-    res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+    console.error(error);
+    res.status(500).json({
+      message: "Terjadi kesalahan",
+      error: error.message,
+    });
   }
 };
-
-
 
 
 // Mendapatkan semua evaluasi

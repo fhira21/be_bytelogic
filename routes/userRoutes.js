@@ -153,7 +153,7 @@ router.get("/profile", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE, EMPLOYE
  *       500:
  *         description: Internal server error
  */
-router.put("/reset-password", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE]), userController.resetPassword);
+router.put("/reset-password", verifyToken, verifyRole ([CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE]), userController.resetPassword);
 
 /**
  * @swagger
