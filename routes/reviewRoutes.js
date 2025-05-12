@@ -7,6 +7,7 @@ const {
   updateMyReview,
   updateReview,
   deleteReview,
+  getReviewStats,
 } = require("../controllers/reviewController");
 const { CLIENT_ROLE, ADMIN_ROLE } = require("../constants/role");
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
@@ -84,6 +85,21 @@ router.get("/", getAllReviews);
  */
 router.get("/myreviews", verifyToken, verifyRole([CLIENT_ROLE]), getMyReviews);
 
+/**
+ * @swagger
+ * /api/reviews/stats:
+ *   get:
+ *     summary: Tapilkan rata" rating
+ *     tags: [Reviews]
+ *     responses:
+ *       200:
+ *         description: Statistik review berhasil diambil
+ *       403:
+ *         description: Akses ditolak, token atau peran tidak sesuai
+ *       500:
+ *         description: Gagal mengambil statistik review
+ */
+router.get("/stats",verifyToken, verifyRole([ADMIN_ROLE]), getReviewStats);
 /**
  * @swagger
  * /api/reviews/{id}:

@@ -32,6 +32,57 @@ exports.createReview = async (req, res) => {
     }
   };
 
+exports.getReviewStats = async (req, res) => {
+  try {
+    const stats = await Review.aggregate([
+      {
+        $group: {
+          _id: "$rating",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: -1 } // Urutkan dari bintang 5 ke 1
+      }
+    ]);
+
+    const total = await Review.countDocuments();
+    const avgResult = await Review.aggregate([
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" }
+        }
+      }
+    ]);
+
+    // Buat struktur data untuk masing-masing bintang (1-5)
+    const stars = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0
+    };
+
+    stats.forEach(item => {
+      stars[item._id] = item.count;
+    });
+
+    res.status(200).json({
+      message: "Statistik review berhasil diambil",
+      totalReviews: total,
+      averageRating: avgResult[0]?.averageRating?.toFixed(2) || "0.00",
+      ratings: stars
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Gagal mengambil statistik review",
+      error: error.message
+    });
+  }
+};
+
 exports.getAllReviews = async (req, res) => {
     try {
       const reviews = await Review.find()
