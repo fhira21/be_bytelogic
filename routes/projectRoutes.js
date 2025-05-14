@@ -203,6 +203,9 @@ router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *           schema:
  *             type: object
  *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "nama proyek"
  *               description:
  *                 type: string
  *                 example: "Deskripsi baru proyek"

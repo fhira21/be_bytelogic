@@ -5,7 +5,7 @@ const Project = require("../models/Project");
 const Client = require("../models/Client");
 
 
-const { createRepository, updateRepository, getCommits } = require("../services/githubService");
+const { createRepository, getCommits } = require("../services/githubService");
 
 exports.createProject = async (req, res) => {
   try {
@@ -310,9 +310,10 @@ exports.getTotalProjectskaryawan = async (req, res) => {
 exports.updateProject = async (req, res) => {
   try {
     const { projectId } = req.params;
-
+    
     if (req.user.role === ADMIN_ROLE) {
       const {
+        title,
         description,
         client_id,
         employees,
@@ -328,8 +329,6 @@ exports.updateProject = async (req, res) => {
         return res.status(404).json({ message: "Proyek tidak ditemukan" });
       }
 
-      // ==== Handle Gambar ====
-      // 1. Hapus gambar berdasarkan index
       if (image_to_delete) {
         let deleteIndexes = Array.isArray(image_to_delete)
           ? image_to_delete.map(i => parseInt(i))
@@ -344,13 +343,12 @@ exports.updateProject = async (req, res) => {
         }
       }
 
-      // 2. Tambah gambar baru (jika ada upload)
       if (req.files && req.files.length > 0) {
         const uploadedPaths = req.files.map(file => "/uploads/" + file.filename);
         project.images.push(...uploadedPaths);
       }
 
-      // ==== Update data proyek lainnya ====
+      project.title = title || project.title;
       project.description = description || project.description;
       project.client = client_id || project.client;
       project.employees = employees || project.employees;

@@ -19,22 +19,27 @@ exports.createRepository = async (githubToken, title, description) => {
     return respose.data
 }
 
-exports.updateRepository = async (githubToken, ownerName, repoName, title, description) => {
-    const data = {
-        name: title,
-        description
-    }
+// exports.updateRepository = async (githubToken, ownerName, currentRepoName, newRepoName, description) => {
+//   const data = {
+//     name: title,
+//     description
+//   };
 
-    const respose = await (axios.patch(`https://api.github.com/repos/${ownerName}/${repoName}`, data, {
-        headers: {
-            'Accept': 'application/vnd.github+json',
-            'Authorization': `Bearer ${githubToken}`,
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    }))
+//   const response = await axios.patch(
+//     `https://api.github.com/repos/${ownerName}/${currentRepoName}`,
+//     data,
+//     {
+//       headers: {
+//         'Accept': 'application/vnd.github+json',
+//         'Authorization': `Bearer ${githubToken}`,
+//         'X-GitHub-Api-Version': '2022-11-28'
+//       }
+//     }
+//   );
 
-    return respose.data
-}
+//   return response.data;
+// };
+
 
 exports.getCommits = async (githubToken, ownerName, repoName) => {
     const respose = await (axios.get(`https://api.github.com/repos/${ownerName}/${repoName}/commits`, {
