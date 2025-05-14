@@ -104,24 +104,6 @@ exports.createEvaluation = async (req, res) => {
 };
 
 
-// Mendapatkan semua evaluasi
-exports.getAllEvaluations = async (req, res) => {
-  try {
-    let filter = {};
-    if (req.user.client) filter.client_id = req.user.client._id;
-    if (req.user.karyawan) filter.employees = { $in: [req.user.karyawan._id] };
-
-    const evaluations = await Evaluation.find(filter)
-      .populate("client_id employees", "nama_lengkap")
-      .populate("project_id", "title");
-    res.status(200).json(evaluations);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Terjadi kesalahan", error: error.message });
-  }
-};
-
 exports.getMyEvaluationsKaryawan = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -164,6 +146,7 @@ exports.getMyEvaluationsKaryawan = async (req, res) => {
     const averageScore = (totalScore / evaluations.length).toFixed(2);
 
     const result = evaluations.map((evaluation) => ({
+      evaluation_id: evaluation._id,
       project_title: evaluation.project_id.title,
       client_name: evaluation.client_id.nama_lengkap,
       final_score: evaluation.final_score,
@@ -185,6 +168,67 @@ exports.getMyEvaluationsKaryawan = async (req, res) => {
       .json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
+
+exports.getProjectEvaluationsByLoggedInClient = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Cari data client berdasarkan user login
+    const client = await Client.findOne({ user: userId });
+    if (!client) {
+      return res.status(404).json({ message: "Client tidak ditemukan" });
+    }
+
+    // Ambil semua proyek milik klien
+    const projects = await Project.find({ client: client._id })
+      .populate("employees", "nama_lengkap")
+      .select("_id title employees");
+
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ message: "Klien belum memiliki proyek." });
+    }
+
+    // Ambil semua evaluasi milik klien ini
+    const evaluations = await Evaluation.find({ client_id: client._id });
+
+    // Buat map evaluasi agar pencarian cepat
+    const evaluatedProjectMap = new Map();
+    evaluations.forEach(evaluation => {
+      evaluatedProjectMap.set(evaluation.project_id.toString(), evaluation);
+    });
+
+    // Susun data proyek dan status evaluasi
+    const result = projects.map(project => {
+      const evalData = evaluatedProjectMap.get(project._id.toString());
+      return {
+        project_id: project._id,
+        project_title: project.title,
+        employees: project.employees,
+        sudah_dinilai: !!evalData,
+        evaluasi: evalData
+          ? {
+              evaluation_id: evalData._id,
+              final_score: evalData.final_score,
+              results: evalData.results,
+            }
+          : null,
+      };
+    });
+
+    res.status(200).json({
+      message: "Data proyek dan evaluasi berhasil ditampilkan",
+      total_proyek: result.length,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error getProjectEvaluationsByLoggedInClient:", error);
+    res.status(500).json({
+      message: "Terjadi kesalahan",
+      error: error.message,
+    });
+  }
+};
+
 
 exports.getKaryawanProjectAndDetailedEvaluation = async (req, res) => {
   try {

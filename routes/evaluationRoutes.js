@@ -2,11 +2,12 @@ const express = require("express");
 const {
   createEvaluation,
   getKaryawanProjectAndDetailedEvaluation,
-  getAllEvaluations,
+  // getAllEvaluations,
   getMyEvaluationsKaryawan,
   getEvaluationById,
   updateEvaluation,
-  deleteEvaluation
+  deleteEvaluation,
+  getProjectEvaluationsByLoggedInClient
 } = require("../controllers/evaluationController");
 // const { CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE } = require("../constants/role");
 const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
@@ -67,20 +68,6 @@ router.post("/", verifyToken, verifyRole([CLIENT_ROLE]), createEvaluation);
 
 /**
  * @swagger
- * /api/evaluations:
- *   get:
- *     summary: Ambil semua evaluasi (Admin)
- *     tags: [Evaluations]
- *     responses:
- *       200:
- *         description: Data evaluasi berhasil diambil
- *       500:
- *         description: Terjadi kesalahan pada server
- */
-router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllEvaluations);
-
-/**
- * @swagger
  * /api/evaluations/evaluationmykaryawan:
  *   get:
  *     summary: Ambil semua evaluasi by karyawan yang login
@@ -95,6 +82,21 @@ router.get("/", verifyToken, verifyRole([ADMIN_ROLE]), getAllEvaluations);
  */
 router.get("/evaluationmykaryawan", verifyToken, verifyRole([EMPLOYEE_ROLE]), getMyEvaluationsKaryawan);
 
+/**
+ * @swagger
+ * /api/evaluations/evaluationmyclient:
+ *   get:
+ *     summary: Ambil semua evaluasi by client yang login
+ *     tags: [Evaluations]
+ *     responses:
+ *       200:
+ *         description: Data evaluasi berhasil ditampilkan
+ *       404: 
+ *         description: Belum ada evaluasi untuk proyek yang dikerjakan.
+ *       500:
+ *         description: Terjadi kesalahan
+ */
+router.get("/evaluationmyclient", verifyToken, verifyRole([CLIENT_ROLE]), getProjectEvaluationsByLoggedInClient);
 /**
  * @swagger
  * /api/evaluations/karyawan/evaluasi-detailed:
@@ -152,12 +154,17 @@ router.get("/:id", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getEval
  *           schema:
  *             type: object
  *             properties:
- *               score:
- *                 type: number
- *                 example: 90
+ *               scores:
+ *                 type: array
+ *                 description: Daftar skor penilaian, urut sesuai indikator
+ *                 items:
+ *                   type: number
+ *                   minimum: 1
+ *                   maximum: 5
+ *                 example: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3]
  *               comments:
  *                 type: string
- *                 example: "Performa meningkat."
+ *                 example: "Kinerja sangat baik."
  *     responses:
  *       200:
  *         description: Evaluasi berhasil diperbarui

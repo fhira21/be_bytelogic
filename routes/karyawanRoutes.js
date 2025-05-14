@@ -197,7 +197,7 @@ router.get("/statuskaryawan", verifyToken, verifyRole([ADMIN_ROLE]), getStatusKa
  *       500:
  *         description: Gagal mengambil data karyawan
  */
-router.get("/:id", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getKaryawanById);
+router.get("/:id", verifyToken, verifyRole ([EMPLOYEE_ROLE, ADMIN_ROLE]), getKaryawanById);
 
 /**
  * @swagger
@@ -274,7 +274,6 @@ router.get("/:id", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getKary
  */
 router.put("/profile/update", verifyToken, verifyRole([EMPLOYEE_ROLE]), updateKaryawanProfile );
 
-  
 /**
  * @swagger
  * /api/karyawan/{id}:

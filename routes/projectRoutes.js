@@ -209,9 +209,6 @@ router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *               framework:
  *                 type: string
  *                 example: "Be apa, Fe apa"
- *               figma:
- *                 type: string
- *                 example: "figma.com"
  *               client_id:
  *                 type: string
  *                 example: "650c20f2a7d1d0b9d7c8d24e"
@@ -224,14 +221,13 @@ router.get("/:projectId", verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE, A
  *                 type: string
  *                 format: date
  *                 example: "2025-06-15"
+ *               completiondate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-06-15"
  *               status:
  *                 type: string
  *                 enum: ["Waiting List", "On Progress", "Completed"]
- *               sdlc_progress:
- *                 type: string
- *                 format: json
- *                 description: Objek progress SDLC dalam bentuk string JSON
- *                 example: '{"analisis": 20, "desain": 0, "implementasi": 0, "pengujian": 0, "maintenance": 0}'
  *               image_to_delete:
  *                 type: array
  *                 items:

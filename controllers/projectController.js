@@ -317,6 +317,7 @@ exports.updateProject = async (req, res) => {
         client_id,
         employees,
         deadline,
+        completiondate,
         status,
         sdlc_progress,
         image_to_delete
@@ -354,6 +355,7 @@ exports.updateProject = async (req, res) => {
       project.client = client_id || project.client;
       project.employees = employees || project.employees;
       project.deadline = deadline || project.deadline;
+      project.completiondate = completiondate;
       project.status = status || project.status;
       project.sdlc_progress = sdlc_progress
         ? JSON.parse(sdlc_progress)

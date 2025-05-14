@@ -99,7 +99,7 @@ router.get("/myreviews", verifyToken, verifyRole([CLIENT_ROLE]), getMyReviews);
  *       500:
  *         description: Gagal mengambil statistik review
  */
-router.get("/stats",verifyToken, verifyRole([ADMIN_ROLE]), getReviewStats);
+router.get("/stats", verifyToken, verifyRole([ADMIN_ROLE]), getReviewStats);
 /**
  * @swagger
  * /api/reviews/{id}:
@@ -207,11 +207,6 @@ router.put("/update", verifyToken, verifyRole([CLIENT_ROLE]), updateReview);
  *       500:
  *         description: Gagal mengambil data review
  */
-router.delete(
-  "/:id",
-  verifyToken,
-  verifyRole([CLIENT_ROLE, ADMIN_ROLE]),
-  deleteReview
-);
+router.delete("/:id", verifyToken, verifyRole([CLIENT_ROLE, ADMIN_ROLE]), deleteReview);
 
 module.exports = router;
