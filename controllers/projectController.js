@@ -123,81 +123,6 @@ exports.getAllProjects = async (req, res) => {
 };
 
 
-exports.getKaryawanProjectAndEvaluation = async (req, res) => {
-  try {
-    // 1. Ambil semua karyawan
-    const karyawans = await Karyawan.find();
-
-    // 2. Proses setiap karyawan
-    const results = await Promise.all(karyawans.map(async (karyawan) => {
-      // Hitung total project yang karyawan ini ikut
-      const totalProjects = await Project.countDocuments({ employees: karyawan._id });
-
-      // Cari semua evaluasi yang terkait karyawan ini
-      const evaluations = await Evaluation.find({ employees: karyawan._id });
-
-      // Hitung rata-rata final_score dari evaluasi
-      let totalScore = 0;
-      evaluations.forEach((evalDoc) => {
-        if (evalDoc.final_score) {
-          totalScore += evalDoc.final_score;
-        }
-      });
-
-      const averageScore = evaluations.length > 0 ? (totalScore / evaluations.length).toFixed(2) : null;
-
-      return {
-        nama_lengkap: karyawan.nama_lengkap,
-        total_project: totalProjects,
-        rata_rata_point_evaluasi: averageScore
-      };
-    }));
-
-    res.status(200).json({
-      success: true,
-      data: results
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching karyawan project and evaluation data",
-      error: error.message
-    });
-  }
-};
-
-exports.getProjects = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const userRole = req.user.role;
-
-    let projects;
-
-    if (userRole === CLIENT_ROLE) {
-      const client = await Client.findOne({ user: userId });
-      if (!client) return res.status(404).json({ message: "Client tidak ditemukan" });
-
-      projects = await Project.find({ client: client._id }, '-github_commits')
-        .populate("employees", "name");
-    } else if (userRole === EMPLOYEE_ROLE) {
-      const employee = await Karyawan.findOne({ user: userId });
-      if (!employee) return res.status(404).json({ message: "Karyawan tidak ditemukan" });
-
-      projects = await Project.find({ employees: employee._id }, '-github_commits')
-        .populate("client", "name");
-    } else {
-      return res.status(403).json({ message: "Akses tidak diizinkan" });
-    }
-
-    res.status(200).json({ message: "Berhasil mengambil proyek", data: projects });
-  } catch (error) {
-    console.error("Error getProjects:", error);
-    res.status(500).json({ message: "Gagal mengambil data proyek", error: error.message });
-  }
-};
-
 exports.getProjectById = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -377,26 +302,6 @@ exports.updateProject = async (req, res) => {
   }
 };
 
-
-exports.deleteProject = async (req, res) => {
-  if (req.user.role !== "manager/admin") {
-    return res.status(403).json({ message: "Hanya Manager yang dapat menghapus proyek." });
-  }
-
-  try {
-    const { projectId } = req.params;
-    const deletedProject = await Project.findByIdAndDelete(projectId);
-
-    if (!deletedProject) {
-      return res.status(404).json({ message: "Proyek tidak ditemukan" });
-    }
-
-    res.status(200).json({ message: "Proyek berhasil dihapus" });
-  } catch (error) {
-    res.status(500).json({ message: "Gagal menghapus proyek", error });
-  }
-};
-
 exports.updateProgress = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -432,47 +337,22 @@ exports.updateProgress = async (req, res) => {
   }
 };
 
-exports.getKaryawanProjectAndEvaluation = async (req, res) => {
+
+exports.deleteProject = async (req, res) => {
+  if (req.user.role !== "manager/admin") {
+    return res.status(403).json({ message: "Hanya Manager yang dapat menghapus proyek." });
+  }
+
   try {
-    // 1. Ambil semua karyawan
-    const karyawans = await Karyawan.find();
+    const { projectId } = req.params;
+    const deletedProject = await Project.findByIdAndDelete(projectId);
 
-    // 2. Proses setiap karyawan
-    const results = await Promise.all(karyawans.map(async (karyawan) => {
-      // Hitung total project yang karyawan ini ikut
-      const totalProjects = await Project.countDocuments({ employees: karyawan._id });
+    if (!deletedProject) {
+      return res.status(404).json({ message: "Proyek tidak ditemukan" });
+    }
 
-      // Cari semua evaluasi yang terkait karyawan ini
-      const evaluations = await Evaluation.find({ employees: karyawan._id });
-
-      // Hitung rata-rata final_score dari evaluasi
-      let totalScore = 0;
-      evaluations.forEach((evalDoc) => {
-        if (evalDoc.final_score) {
-          totalScore += evalDoc.final_score;
-        }
-      });
-
-      const averageScore = evaluations.length > 0 ? (totalScore / evaluations.length).toFixed(2) : null;
-
-      return {
-        nama_lengkap: karyawan.nama_lengkap,
-        total_project: totalProjects,
-        rata_rata_point_evaluasi: averageScore
-      };
-    }));
-
-    res.status(200).json({
-      success: true,
-      data: results
-    });
-
+    res.status(200).json({ message: "Proyek berhasil dihapus" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching karyawan project and evaluation data",
-      error: error.message
-    });
+    res.status(500).json({ message: "Gagal menghapus proyek", error });
   }
 };

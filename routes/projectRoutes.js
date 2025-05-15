@@ -314,3 +314,4 @@ router.delete("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), deleteProjec
 router.post("/:projectId/progress", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), updateProgress);
 
 module.exports = router;
+

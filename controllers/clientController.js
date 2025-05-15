@@ -31,16 +31,16 @@ exports.createClient = async (req, res) => {
     try {
       const clients = await Client.find();
       const totalClients = clients.length;
-  
+
       res.status(200).json({
         message: "Data klien berhasil diambil",
         totalClients: totalClients,
-        data: clients
+        data: clients,
       });
     } catch (error) {
       res.status(500).json({
         message: "Gagal mengambil data klien",
-        error: error.message
+        error: error.message,
       });
     }
   };
