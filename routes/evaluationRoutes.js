@@ -114,20 +114,6 @@ router.get("/karyawan/evaluasi-detailed", verifyToken, verifyRole([EMPLOYEE_ROLE
 
 /**
  * @swagger
- * /api/evaluations:
- *   get:
- *     summary: Ambil semua evaluasi
- *     tags: [Evaluations]
- *     responses:
- *       200:
- *         description: Data evaluasi berhasil diambil
- *       500:
- *         description: Terjadi kesalahan saat mengambil data evaluasi
- */
-router.get("/", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getAllEvaluations);
-
-/**
- * @swagger
  * /api/evaluations/{id}:
  *   get:
  *     summary: Ambil evaluasi berdasarkan ID

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const EvaluationAspect = require("./models/EvaluationAspect");
 
-mongoose.connect("mongodb+srv://mfhiratriana:xZSDn3jCHdoqANfn@bytelogic.nwiim.mongodb.net/?retryWrites=true&w=majority&appName=bytelogic"); // Ganti dengan database kamu
+mongoose.connect("mongodb+srv://mfhiratriana:xZSDn3jCHdoqANfn@bytelogic.nwiim.mongodb.net/?retryWrites=true&w=majority&appName=bytelogic"); 
 
 const seedAspects = async () => {
   await EvaluationAspect.deleteMany();
