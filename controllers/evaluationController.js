@@ -238,45 +238,40 @@ exports.getProjectEvaluationsByLoggedInClient = async (req, res) => {
 
 exports.getEvaluationSummaryByEmployee = async (req, res) => {
   try {
-    // Ambil semua karyawan
     const allEmployees = await Karyawan.find();
-
     const results = [];
 
     for (const employee of allEmployees) {
-      // Ambil semua evaluasi yang melibatkan karyawan ini
       const evaluations = await Evaluation.find({ employees: employee._id })
         .populate("project_id", "title")
-        .populate("client_id", "nama_lengkap") // bisa kamu ganti sesuai field client
-        .populate("results.aspect_id", "name") // nama aspek evaluasi
+        .populate("client_id", "nama_lengkap")
+        .populate("results.aspect_id", "name")
         .lean();
 
-      // Hitung total skor dari semua evaluasi
       const totalScore = evaluations.reduce(
-        (sum, eval) => sum + (eval.final_score || 0),
+        (sum, evalItem) => sum + (evalItem?.final_score || 0),
         0
       );
 
-      // Hitung jumlah evaluasi
       const totalEvaluations = evaluations.length;
 
-      // Hitung jumlah proyek unik
+      // Hindari error jika project_id null
       const projectIds = new Set(
-        evaluations.map((e) => e.project_id._id.toString())
+        evaluations
+          .filter((e) => e.project_id && e.project_id._id)
+          .map((e) => e.project_id._id.toString())
       );
       const totalProjects = projectIds.size;
 
-      // Susun detail evaluasi
       const evaluationDetails = evaluations.map((e) => ({
         evaluation_id: e._id,
-        project_title: e.project_id.title,
-        client_name: e.client_id.nama_lengkap,
-        final_score: e.final_score,
-        results: e.results,
-        comments: e.comments,
+        project_title: e.project_id?.title || "Tidak diketahui",
+        client_name: e.client_id?.nama_lengkap || "Tidak diketahui",
+        final_score: e.final_score || 0,
+        results: e.results || [],
+        comments: e.comments || "",
       }));
 
-      // Masukkan ke hasil
       results.push({
         employee_id: employee._id,
         nama_karyawan: employee.nama_lengkap,
@@ -296,6 +291,7 @@ exports.getEvaluationSummaryByEmployee = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 exports.getEvaluationById = async (req, res) => {
   try {

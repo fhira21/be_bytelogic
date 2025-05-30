@@ -163,16 +163,20 @@ exports.getProjectskaryawanklien = async (req, res) => {
 
     if (userRole === CLIENT_ROLE) {
       const client = await Client.findOne({ user: userId });
-      if (!client) return res.status(404).json({ message: "Client tidak ditemukan" });
+      if (!client)
+        return res.status(404).json({ message: "Client tidak ditemukan" });
 
-      projects = await Project.find({ client: client._id }, '-github_commits')
-        .populate("employees", "name");
+      projects = await Project.find({ client: client._id })
+        .populate("employees", "name")
+        .populate("github_commits"); // <-- tambahkan jika github_commits adalah ref
     } else if (userRole === EMPLOYEE_ROLE) {
       const employee = await Karyawan.findOne({ user: userId });
-      if (!employee) return res.status(404).json({ message: "Karyawan tidak ditemukan" });
+      if (!employee)
+        return res.status(404).json({ message: "Karyawan tidak ditemukan" });
 
-      projects = await Project.find({ employees: employee._id }, '-github_commits')
-        .populate("client", "name");
+      projects = await Project.find({ employees: employee._id })
+        .populate("client", "name")
+        .populate("github_commits"); // <-- tambahkan jika github_commits adalah ref
     } else {
       return res.status(403).json({ message: "Akses tidak diizinkan" });
     }
@@ -183,6 +187,7 @@ exports.getProjectskaryawanklien = async (req, res) => {
     res.status(500).json({ message: "Gagal mengambil data proyek", error: error.message });
   }
 };
+
 
 exports.getTotalProjectskaryawan = async (req, res) => {
   try {
@@ -199,29 +204,37 @@ exports.getTotalProjectskaryawan = async (req, res) => {
       return res.status(404).json({ message: "Karyawan tidak ditemukan" });
     }
 
-    // Ambil semua proyek yang dikerjakan oleh karyawan ini
+    // Ambil semua proyek yang dikerjakan oleh karyawan ini (tanpa github_commits)
     const projects = await Project.find({ employees: employee._id }, '-github_commits');
 
-    // Hitung total proyek dan jumlah berdasarkan status
+    // Hitung total dan kelompokkan berdasarkan status
     const totalProjects = projects.length;
-    const statusCount = {
-      "Waiting List": 0,
-      "On Progress": 0,
-      "Completed": 0
+
+    const statusSummary = {
+      "Waiting List": [],
+      "On Progress": [],
+      "Completed": []
     };
 
     projects.forEach(project => {
       const status = project.status;
-      if (statusCount[status] !== undefined) {
-        statusCount[status]++;
+      if (statusSummary[status] !== undefined) {
+        statusSummary[status].push(project);
       }
     });
 
     res.status(200).json({
-      message: "Berhasil menghitung total proyek karyawan",
+      message: "Berhasil mengambil total dan detail proyek karyawan",
       data: {
         totalProjects,
-        statusSummary: statusCount
+        statusSummary: {
+          count: {
+            "Waiting List": statusSummary["Waiting List"].length,
+            "On Progress": statusSummary["On Progress"].length,
+            "Completed": statusSummary["Completed"].length
+          },
+          detail: statusSummary
+        }
       }
     });
 
@@ -230,6 +243,7 @@ exports.getTotalProjectskaryawan = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
+
 
 
 exports.updateProject = async (req, res) => {

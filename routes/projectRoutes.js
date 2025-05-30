@@ -125,7 +125,7 @@ router.get("/status-summary", verifyToken, verifyRole([ADMIN_ROLE]), getProjectS
  *       500:
  *         description: Gagal mengambil data proyek
  */
-router.get("/total-project", verifyToken, verifyRole([ADMIN_ROLE]), getTotalProjectskaryawan);
+router.get("/total-project", verifyToken, verifyRole([EMPLOYEE_ROLE]), getTotalProjectskaryawan);
 
 /**
  * @swagger
