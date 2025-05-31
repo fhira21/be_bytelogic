@@ -162,31 +162,44 @@ exports.getProjectskaryawanklien = async (req, res) => {
     let projects;
 
     if (userRole === CLIENT_ROLE) {
+      // Temukan client berdasarkan user yang login
       const client = await Client.findOne({ user: userId });
       if (!client)
         return res.status(404).json({ message: "Client tidak ditemukan" });
 
+      // Ambil proyek yang hanya dimiliki oleh client tersebut
       projects = await Project.find({ client: client._id })
-        .populate("employees", "name")
-        .populate("github_commits"); // <-- tambahkan jika github_commits adalah ref
+        .populate("employees", "name") // hanya nama karyawan
+        .populate("github_commits");   // jika ada relasi ref GitHub
+
     } else if (userRole === EMPLOYEE_ROLE) {
+      // Temukan karyawan berdasarkan user yang login
       const employee = await Karyawan.findOne({ user: userId });
       if (!employee)
         return res.status(404).json({ message: "Karyawan tidak ditemukan" });
 
+      // Ambil proyek yang hanya melibatkan karyawan ini
       projects = await Project.find({ employees: employee._id })
-        .populate("client", "name")
-        .populate("github_commits"); // <-- tambahkan jika github_commits adalah ref
+        .populate("client", "name")   // hanya nama klien
+        .populate("github_commits");
+
     } else {
       return res.status(403).json({ message: "Akses tidak diizinkan" });
     }
 
-    res.status(200).json({ message: "Berhasil mengambil proyek", data: projects });
+    res.status(200).json({
+      message: "Berhasil mengambil proyek",
+      data: projects,
+    });
   } catch (error) {
-    console.error("Error getProjects:", error);
-    res.status(500).json({ message: "Gagal mengambil data proyek", error: error.message });
+    console.error("Error getProjectskaryawanklien:", error);
+    res.status(500).json({
+      message: "Gagal mengambil data proyek",
+      error: error.message,
+    });
   }
 };
+
 
 
 exports.getTotalProjectskaryawan = async (req, res) => {
