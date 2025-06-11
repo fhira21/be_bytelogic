@@ -7,14 +7,6 @@ const GithubCommitSchema = new mongoose.Schema({
   url: String
 }, { _id: false });
 
-const SDLCProgress = new mongoose.Schema({
-  analisis: { type: Number, default: 0 },
-  desain: { type: Number, default: 0 },
-  implementasi: { type: Number, default: 0 },
-  pengujian: { type: Number, default: 0 },
-  maintenance: { type: Number, default: 0 },
-}, { _id: false });
-
 const ProjectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
@@ -39,8 +31,6 @@ const ProjectSchema = new mongoose.Schema({
   github_commits: [GithubCommitSchema],
 
   github_fine_grain_token: { type: String, select: false },
-
-  sdlc_progress: SDLCProgress,
 
 }, {
   timestamps: {

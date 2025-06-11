@@ -42,6 +42,7 @@ const router = express.Router();
  *                 example: "Proyek selesai tepat waktu dan hasilnya sangat memuaskan!"
  *               rating:
  *                 type: number
+ * 
  *                 minimum: 1
  *                 maximum: 5
  *                 example: 5
