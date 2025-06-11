@@ -10,7 +10,6 @@ const {
   getProjectStatusSummary,
   getTotalProjectskaryawan,
   getProjectById,
-  // updateProgress,
 } = require("../controllers/projectController");
 const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
 const upload = require("../middlewares/uploadMiddleware");
@@ -269,49 +268,6 @@ router.put("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), upload.array('i
  *         description: Gagal memperbarui data proyek
  */
 router.delete("/:projectId", verifyToken, verifyRole([ADMIN_ROLE]), deleteProject);
-
-// /**
-//  * @swagger
-//  * /api/projects/{projectId}/progress:
-//  *   post:
-//  *     summary: Update progress proyek SDLC
-//  *     tags: [Projects]
-//  *     parameters:
-//  *       - in: path
-//  *         name: projectId
-//  *         required: true
-//  *         schema:
-//  *           type: string
-//  *         description: ID proyek
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             properties:
-//  *               analisis:
-//  *                 type: number
-//  *                 example: 30
-//  *               desain:
-//  *                 type: number
-//  *                 example: 10
-//  *               implementasi:
-//  *                 type: number
-//  *                 example: 0
-//  *               pengujian:
-//  *                 type: number
-//  *                 example: 0
-//  *               maintenance:
-//  *                 type: number
-//  *                 example: 0
-//  *     responses:
-//  *       200:
-//  *         description: Status proyek diperbarui
-//  *       500:
-//  *         description: Gagal memperbarui data proyek
-//  */
-// router.post("/:projectId/progress", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), updateProgress);
 
 module.exports = router;
 
