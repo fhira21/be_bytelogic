@@ -248,12 +248,15 @@ exports.getEvaluationSummaryByEmployee = async (req, res) => {
         .populate("results.aspect_id", "name")
         .lean();
 
+      const totalEvaluations = evaluations.length;
+
+      // Hitung rata-rata final score
       const totalScore = evaluations.reduce(
         (sum, evalItem) => sum + (evalItem?.final_score || 0),
         0
       );
-
-      const totalEvaluations = evaluations.length;
+      const averageScore =
+        totalEvaluations > 0 ? totalScore / totalEvaluations : 0;
 
       // Hindari error jika project_id null
       const projectIds = new Set(
@@ -275,7 +278,7 @@ exports.getEvaluationSummaryByEmployee = async (req, res) => {
       results.push({
         employee_id: employee._id,
         nama_karyawan: employee.nama_lengkap,
-        total_final_score: totalScore,
+        average_final_score: averageScore.toFixed(2),
         total_projects: totalProjects,
         total_evaluations: totalEvaluations,
         evaluations: evaluationDetails,
@@ -291,7 +294,6 @@ exports.getEvaluationSummaryByEmployee = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 exports.getEvaluationById = async (req, res) => {
   try {
@@ -314,7 +316,6 @@ exports.getEvaluationById = async (req, res) => {
   }
 };
 
-// Memperbarui evaluasi
 exports.updateEvaluation = async (req, res) => {
   try {
     let filter = { _id: req.params.id };
@@ -396,7 +397,6 @@ exports.updateEvaluation = async (req, res) => {
   }
 };
 
-// Menghapus evaluasi
 exports.deleteEvaluation = async (req, res) => {
   try {
     const deletedEvaluation = await Evaluation.findByIdAndDelete(req.params.id);

@@ -1,4 +1,5 @@
 const Client = require("../models/Client");
+const User = require("../models/User");
 
 exports.createClient = async (req, res) => {
     try {
@@ -63,16 +64,31 @@ exports.getClientById = async (req, res) => {
 };
 
 exports.getClientProfile = async (req, res) => {
-    try {
-      const client = await Client.findOne({ user_id: req.user.id });
-      if (!client) return res.status(404).json({ message: "Profil klien tidak ditemukan" });
-  
-      res.status(200).json({ message: "Profil klien berhasil diambil", data: client });
-    } catch (error) {
-      res.status(500).json({ message: "Gagal mengambil profil klien", error: error.message });
+  try {
+    // Ambil data client berdasarkan user yang login
+    const client = await Client.findOne({ user_id: req.user.id });
+    if (!client) {
+      return res.status(404).json({ message: "Profil klien tidak ditemukan" });
     }
+
+    // Ambil data user berdasarkan ID dari token
+    const user = await User.findById(req.user.id).select('username role');
+
+    res.status(200).json({
+      message: "Profil klien berhasil diambil",
+      data: {
+        user,
+        client
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Gagal mengambil profil klien",
+      error: error.message
+    });
+  }
 };
-  
+
 exports.updateClientProfile = async (req, res) => {
     try {
       const client = await Client.findOneAndUpdate(

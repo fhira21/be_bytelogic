@@ -1,4 +1,5 @@
 const Karyawan = require("../models/Karyawan");
+const User = require("../models/User");
 
 exports.createKaryawan = async (req, res) => {
   try {
@@ -36,13 +37,25 @@ exports.getKaryawanById = async (req, res) => {
 };
 
 exports.getKaryawanProfile = async (req, res) => {
-  try {
-    const karyawan = await Karyawan.findOne({ user_id: req.user.id }); // Ambil dari token
-    if (!karyawan) return res.status(404).json({ message: "Profil karyawan tidak ditemukan" });
+  try { 
+    const karyawan = await Karyawan.findOne({ user_id: req.user.id }); // Ambil
+    if (!karyawan) {
+      return res.status(404).json({ message: "Profile Karyawan tidak ditemukan" });
+    }
+    const user = await User.findById(req.user.id).select('username role');
 
-    res.status(200).json({ message: "Profil karyawan berhasil diambil", data: karyawan });
+    res.status(200).json({
+      message: "Profil karyawan berhasil diambil",
+      data: {
+        user,
+        karyawan
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: "Gagal mengambil profil karyawan", error: error.message });
+    res.status(500).json({
+      message: "Gagal mengambil profil karyawan",
+      error: error.message
+    });
   }
 };
 

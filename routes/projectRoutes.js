@@ -3,7 +3,7 @@ const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 const {
   createProject,
   getPublicProjectSummary,
-  getProjectskaryawanklien,
+  getProjectsklien,
   updateProject,
   deleteProject,
   getAllProjects,
@@ -128,9 +128,9 @@ router.get("/total-project", verifyToken, verifyRole([EMPLOYEE_ROLE]), getTotalP
 
 /**
  * @swagger
- * /api/projects/karyawan/klien:
+ * /api/projects/klien:
  *   get:
- *     summary: Mendapatkan daftar proyek berdasarkan id (Klien atau Karyawan) yang login
+ *     summary: Mendapatkan daftar proyek berdasarkan id klien yang login
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
@@ -142,7 +142,7 @@ router.get("/total-project", verifyToken, verifyRole([EMPLOYEE_ROLE]), getTotalP
  *       500:
  *         description: Gagal mengambil data proyek
  */
-router.get('/karyawan/klien', verifyToken, verifyRole([CLIENT_ROLE, EMPLOYEE_ROLE]), getProjectskaryawanklien);
+router.get('/klien', verifyToken, verifyRole([CLIENT_ROLE]), getProjectsklien);
 
 /**
  * @swagger

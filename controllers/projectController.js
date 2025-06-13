@@ -6,8 +6,8 @@ const Client = require("../models/Client");
 const {
   createRepository,
   getCommits,
-  getRepoIssues, 
-  getProjectProgressFromIssues
+  getRepoIssues,
+  getProjectProgressFromIssues,
 } = require("../services/githubService");
 
 exports.createProject = async (req, res) => {
@@ -141,7 +141,9 @@ exports.getProjectById = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const project = await Project.findById(projectId).select("+github_fine_grain_token");
+    const project = await Project.findById(projectId).select(
+      "+github_fine_grain_token"
+    );
 
     if (!project) {
       return res.status(404).json({ message: "Proyek tidak ditemukan" });
@@ -182,18 +184,21 @@ exports.getProjectById = async (req, res) => {
           project.github_repo_name
         );
 
-        const realIssues = issues.filter(issue => !issue.pull_request);
-        const closedIssues = realIssues.filter(issue => issue.state === 'closed').length;
+        const realIssues = issues.filter((issue) => !issue.pull_request);
+        const closedIssues = realIssues.filter(
+          (issue) => issue.state === "closed"
+        ).length;
         const totalIssues = realIssues.length;
-        const progress = totalIssues > 0 ? Math.round((closedIssues / totalIssues) * 100) : 0;
+        const progress =
+          totalIssues > 0 ? Math.round((closedIssues / totalIssues) * 100) : 0;
 
         progressInfo = {
           total: totalIssues,
           closed: closedIssues,
-          progressPercentage: progress
+          progressPercentage: progress,
         };
 
-        githubIssues = realIssues.map(issue => ({
+        githubIssues = realIssues.map((issue) => ({
           number: issue.number,
           title: issue.title,
           state: issue.state,
@@ -225,34 +230,24 @@ exports.getProjectById = async (req, res) => {
   }
 };
 
-exports.getProjectskaryawanklien = async (req, res) => {
+exports.getProjectsklien = async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const userRole = req.user.role;
+    const userId = req.user.id || req.user.userId; // Sesuaikan dengan struktur token JWT-mu
 
-    let projects;
-
-    if (userRole === CLIENT_ROLE) {
-      const client = await Client.findOne({ user: userId });
-      if (!client)
-        return res.status(404).json({ message: "Client tidak ditemukan" });
-
-      projects = await Project.find({ client: client._id })
-        .populate("employees", "name")
-        .populate("github_commits")
-        .select("+github_fine_grain_token");
-    } else if (userRole === EMPLOYEE_ROLE) {
-      const employee = await Karyawan.findOne({ user: userId });
-      if (!employee)
-        return res.status(404).json({ message: "Karyawan tidak ditemukan" });
-
-      projects = await Project.find({ employees: employee._id })
-        .populate("client", "name")
-        .populate("github_commits")
-        .select("+github_fine_grain_token");
-    } else {
-      return res.status(403).json({ message: "Akses tidak diizinkan" });
+    // Cari klien berdasarkan user yang login
+    const client = await Client.findOne({ user_id: userId });
+    if (!client) {
+      return res.status(404).json({ message: "Klien tidak ditemukan" });
     }
+
+    // Ambil proyek-proyek berdasarkan _id klien
+    const projects = await Project.find({ client: client._id })
+      .populate("employees", "name")
+      .populate("github_commits")
+      .select("+github_fine_grain_token");
+
+    // Hitung total proyek
+    const totalProjects = projects.length;
 
     const projectsWithProgress = await Promise.all(
       projects.map(async (project) => {
@@ -271,19 +266,26 @@ exports.getProjectskaryawanklien = async (req, res) => {
               project.github_repo_name
             );
 
-            const realIssues = githubIssues.filter(issue => !issue.pull_request);
-            const closedIssues = realIssues.filter(issue => issue.state === 'closed').length;
+            const realIssues = githubIssues.filter(
+              (issue) => !issue.pull_request
+            );
+            const closedIssues = realIssues.filter(
+              (issue) => issue.state === "closed"
+            ).length;
             const totalIssues = realIssues.length;
-            const progress = totalIssues > 0 ? Math.round((closedIssues / totalIssues) * 100) : 0;
+            const progress =
+              totalIssues > 0
+                ? Math.round((closedIssues / totalIssues) * 100)
+                : 0;
 
             progressInfo = {
               total: totalIssues,
               closed: closedIssues,
-              progressPercentage: progress
+              progressPercentage: progress,
             };
 
             // Transform data for frontend
-            githubIssues = realIssues.map(issue => ({
+            githubIssues = realIssues.map((issue) => ({
               number: issue.number,
               title: issue.title,
               state: issue.state,
@@ -293,24 +295,28 @@ exports.getProjectskaryawanklien = async (req, res) => {
               updated_at: issue.updated_at,
             }));
           } catch (err) {
-            console.error(`❌ Error fetching GitHub issues for ${project.github_repo_name}:`, err.message);
+            console.error(
+              `❌ Error fetching GitHub issues for ${project.github_repo_name}:`,
+              err.message
+            );
           }
         }
 
         return {
           ...project.toObject(),
           githubProgress: progressInfo,
-          githubIssues: githubIssues
+          githubIssues: githubIssues,
         };
       })
     );
 
     res.status(200).json({
-      message: "Berhasil mengambil proyek",
+      message: "Berhasil mengambil proyek berdasarkan klien yang login",
+      totalProjects: totalProjects,
       data: projectsWithProgress,
     });
   } catch (error) {
-    console.error("❌ Error getProjectskaryawanklien:", error.message);
+    console.error("❌ Error getProjectsByClientLogin:", error.message);
     res.status(500).json({
       message: "Gagal mengambil data proyek",
       error: error.message,
