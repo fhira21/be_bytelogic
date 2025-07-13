@@ -242,7 +242,7 @@ exports.getProjectsklien = async (req, res) => {
 
     // Ambil proyek-proyek berdasarkan _id klien
     const projects = await Project.find({ client: client._id })
-      .populate("employees", "name")
+      .populate("employees")
       .populate("github_commits")
       .select("+github_fine_grain_token");
 
@@ -304,6 +304,9 @@ exports.getProjectsklien = async (req, res) => {
 
         return {
           ...project.toObject(),
+          employees: project.employees.map((emp) =>
+            typeof emp === "object" ? emp.nama_lengkap : emp
+          ),
           githubProgress: progressInfo,
           githubIssues: githubIssues,
         };

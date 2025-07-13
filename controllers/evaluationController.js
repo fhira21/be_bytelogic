@@ -61,8 +61,8 @@ exports.createEvaluation = async (req, res) => {
         });
       }
 
-      tempScore += currentScore * (aspect.weight / 100); 
-      maxScore += 5 * (aspect.weight / 100); 
+      tempScore += currentScore * (aspect.weight / 100);
+      maxScore += 5 * (aspect.weight / 100);
 
       evaluationResult.push({
         aspect_id: aspect._id,
@@ -108,6 +108,16 @@ exports.createEvaluation = async (req, res) => {
       message: "Terjadi kesalahan",
       error: error.message,
     });
+  }
+};
+
+exports.getEvaluationAspects = async (req, res) => {
+  try {
+    const aspects = await EvaluationAspect.find();
+    res.status(200).json(aspects);
+  } catch (error) {
+    console.error("Error getting evaluation aspects:", error);
+    res.status(500).json({ message: "Failed to get evaluation aspects" });
   }
 };
 
@@ -214,10 +224,10 @@ exports.getProjectEvaluationsByLoggedInClient = async (req, res) => {
         sudah_dinilai: !!evalData,
         evaluasi: evalData
           ? {
-              evaluation_id: evalData._id,
-              final_score: evalData.final_score,
-              results: evalData.results,
-            }
+            evaluation_id: evalData._id,
+            final_score: evalData.final_score,
+            results: evalData.results,
+          }
           : null,
       };
     });
@@ -364,8 +374,8 @@ exports.updateEvaluation = async (req, res) => {
             .json({ message: `Skor untuk aspek ${aspect.name} tidak valid` });
         }
 
-        tempScore += currentScore * (aspect.weight / 100); 
-        maxScore += 5 * (aspect.weight / 100); 
+        tempScore += currentScore * (aspect.weight / 100);
+        maxScore += 5 * (aspect.weight / 100);
 
         evaluationResult.push({
           aspect_id: aspect._id,

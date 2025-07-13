@@ -2,12 +2,12 @@ const express = require("express");
 const {
   createEvaluation,
   getEvaluationSummaryByEmployee,
-  getAllEvaluations,
   getMyEvaluationsKaryawan,
   getEvaluationById,
   updateEvaluation,
   deleteEvaluation,
-  getProjectEvaluationsByLoggedInClient
+  getProjectEvaluationsByLoggedInClient,
+  getEvaluationAspects
 } = require("../controllers/evaluationController");
 // const { CLIENT_ROLE, EMPLOYEE_ROLE, ADMIN_ROLE } = require("../constants/role");
 const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
@@ -111,6 +111,48 @@ router.get("/evaluationmyclient", verifyToken, verifyRole([CLIENT_ROLE]), getPro
  *         description: Terjadi kesalahan saat mengambil data evaluasi
  */
 router.get("/karyawan/evaluasi-detailed", verifyToken, verifyRole([EMPLOYEE_ROLE, ADMIN_ROLE]), getEvaluationSummaryByEmployee);
+
+/**
+ * @swagger
+ * /api/evaluations/aspects:
+ *   get:
+ *     summary: Ambil semua aspek evaluasi untuk form client
+ *     tags: [Evaluations]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Berhasil mengambil daftar aspek evaluasi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   aspect_name:
+ *                     type: string
+ *                   question:
+ *                     type: string
+ *                   weight:
+ *                     type: number
+ *                   criteria:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         score:
+ *                           type: number
+ *                         label:
+ *                           type: string
+ *       401:
+ *         description: Tidak memiliki akses
+ *       500:
+ *         description: Terjadi kesalahan pada server
+ */
+router.get("/aspects", verifyToken, verifyRole([CLIENT_ROLE]), getEvaluationAspects);
 
 /**
  * @swagger
