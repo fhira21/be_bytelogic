@@ -148,7 +148,8 @@ exports.getMyEvaluationsKaryawan = async (req, res) => {
       project_id: { $in: projectIds },
     })
       .populate("project_id", "title")
-      .populate("client_id", "nama_lengkap");
+      .populate("client_id", "nama_lengkap")
+      .populate("results.aspect_id", "aspect_name");
 
     if (!evaluations || evaluations.length === 0) {
       return res
