@@ -66,6 +66,16 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find(); // ambil semua user dari database
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Gagal mengambil data users:", error);
+    res.status(500).json({ message: "Gagal mengambil data users" });
+  }
+};
+
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);

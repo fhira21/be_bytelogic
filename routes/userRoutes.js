@@ -12,6 +12,8 @@ const { CLIENT_ROLE, ADMIN_ROLE, EMPLOYEE_ROLE } = require("../constants/role");
  *   description: API untuk manajemen user (register, login, reset password, delete user)
  */
 
+
+
 /**
  * @swagger
  * /api/users/register:
@@ -83,6 +85,8 @@ router.post("/register", userController.registerUser);
  *         description: Internal server error
  */
 router.post("/login", userController.loginUser);
+
+
 
 /**
  * @swagger
@@ -177,5 +181,7 @@ router.put("/reset-password", verifyToken, verifyRole ([CLIENT_ROLE, ADMIN_ROLE,
  *         description: Internal server error
  */
 router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), userController.deleteUser);
+
+router.get("/", userController.getAllUsers);
 
 module.exports = router;
