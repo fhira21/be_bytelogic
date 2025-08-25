@@ -256,7 +256,7 @@ exports.getEvaluationSummaryByEmployee = async (req, res) => {
       const evaluations = await Evaluation.find({ employees: employee._id })
         .populate("project_id", "title")
         .populate("client_id", "nama_lengkap")
-        .populate("results.aspect_id", "name")
+        .populate("results.aspect_id", "aspect_name")
         .lean();
 
       const totalEvaluations = evaluations.length;
@@ -284,6 +284,7 @@ exports.getEvaluationSummaryByEmployee = async (req, res) => {
         final_score: e.final_score || 0,
         results: e.results || [],
         comments: e.comments || "",
+        tanggal: e.createdAt,
       }));
 
       results.push({

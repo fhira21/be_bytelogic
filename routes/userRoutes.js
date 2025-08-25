@@ -86,8 +86,6 @@ router.post("/register", userController.registerUser);
  */
 router.post("/login", userController.loginUser);
 
-
-
 /**
  * @swagger
  * /api/users/{id}:
@@ -182,6 +180,20 @@ router.put("/reset-password", verifyToken, verifyRole ([CLIENT_ROLE, ADMIN_ROLE,
  */
 router.delete("/:id", verifyToken, verifyRole([ADMIN_ROLE]), userController.deleteUser);
 
+/**
+ * @swagger
+ * /api/users/:
+ *   get:
+ *     summary: Tampil data users client
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Data user ditemukan
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/", userController.getAllUsers);
 
 module.exports = router;
