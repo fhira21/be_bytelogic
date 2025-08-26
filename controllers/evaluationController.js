@@ -123,9 +123,9 @@ exports.getEvaluationAspects = async (req, res) => {
 
 exports.getMyEvaluationsKaryawan = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id || req.user.userId;
 
-    const employee = await Karyawan.findOne({ user: userId });
+    const employee = await Karyawan.findOne({ user_id: userId });
     if (!employee) {
       return res.status(404).json({ message: "Karyawan tidak ditemukan" });
     }
@@ -169,6 +169,7 @@ exports.getMyEvaluationsKaryawan = async (req, res) => {
       client_name: evaluation.client_id.nama_lengkap,
       final_score: evaluation.final_score,
       results: evaluation.results,
+      tanggal: evaluation.createdAt,
     }));
 
     res.status(200).json({

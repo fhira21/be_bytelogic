@@ -327,64 +327,80 @@ exports.getProjectsklien = async (req, res) => {
   }
 };
 
+// controllers/projectController.js
+
 exports.getTotalProjectskaryawan = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    // Ambil identitas user dari token
+    const userId = req.user.id || req.user.userId;
     const userRole = req.user.role;
 
     // Hanya untuk karyawan
     if (userRole !== EMPLOYEE_ROLE) {
-      return res
-        .status(403)
-        .json({ message: "Akses hanya diizinkan untuk karyawan" });
+      return res.status(403).json({ message: "Akses hanya diizinkan untuk karyawan" });
     }
 
-    const employee = await Karyawan.findOne({ user: userId });
+    // Temukan dokumen karyawan dari user yang login
+    const employee = await Karyawan.findOne({ user_id: userId }).lean();
     if (!employee) {
       return res.status(404).json({ message: "Karyawan tidak ditemukan" });
     }
 
-    // Ambil semua proyek yang dikerjakan oleh karyawan ini (tanpa github_commits)
     const projects = await Project.find(
       { employees: employee._id },
-      "-github_commits"
-    );
+      "-github_commits -github_fine_grain_token" // amankan field sensitif
+    )
+      .populate("client", "nama_lengkap name email")   // ambil nama client
+      .populate("employees", "nama_lengkap email")     // opsional: agar FE bisa tampilkan nama karyawan
+      .lean();
 
-    // Hitung total dan kelompokkan berdasarkan status
-    const totalProjects = projects.length;
+    // Normalisasi: tambahkan client_name (string) agar FE tidak perlu mapping manual lagi
+    const normalized = projects.map((p) => ({
+      ...p,
+      client_id: p.client?._id || null,
+      client_name: p.client?.nama_lengkap || p.client?.name || p.client?.email || "-",
+    }));
 
-    const statusSummary = {
+    // Hitung total & kelompokkan berdasarkan status (pastikan 3 status selalu ada)
+    const statusBuckets = {
       "Waiting List": [],
       "On Progress": [],
-      Completed: [],
+      "Completed": [],
     };
 
-    projects.forEach((project) => {
-      const status = project.status;
-      if (statusSummary[status] !== undefined) {
-        statusSummary[status].push(project);
+    for (const p of normalized) {
+      const s = p.status || "Waiting List";
+      if (statusBuckets[s]) {
+        statusBuckets[s].push(p);
+      } else {
+        // kalau ada status di luar 3, masukkan sebagai Waiting List biar aman (opsional)
+        statusBuckets["Waiting List"].push(p);
       }
-    });
+    }
 
-    res.status(200).json({
-      message: "Berhasil mengambil total dan detail proyek karyawan",
-      data: {
-        totalProjects,
-        statusSummary: {
-          count: {
-            "Waiting List": statusSummary["Waiting List"].length,
-            "On Progress": statusSummary["On Progress"].length,
-            Completed: statusSummary["Completed"].length,
-          },
-          detail: statusSummary,
+    const response = {
+      totalProjects: normalized.length,
+      statusSummary: {
+        count: {
+          "Waiting List": statusBuckets["Waiting List"].length,
+          "On Progress": statusBuckets["On Progress"].length,
+          "Completed": statusBuckets["Completed"].length,
         },
+        detail: statusBuckets, // setiap item sudah punya client_name
       },
+    };
+
+    return res.status(200).json({
+      message: "Berhasil mengambil total dan detail proyek karyawan",
+      success: true,
+      data: response,
     });
   } catch (error) {
     console.error("Error saat mengambil data proyek karyawan:", error);
-    res.status(500).json({ message: "Terjadi kesalahan server" });
+    return res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
+
 
 exports.updateProject = async (req, res) => {
   try {
