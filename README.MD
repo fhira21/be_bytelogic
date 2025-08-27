@@ -1,37 +1,43 @@
 # Employee Evaluation & Project Management System
 
-## 📌 Deskripsi Proyek
-Sistem ini adalah platform berbasis web untuk **evaluasi karyawan dan manajemen proyek** di perusahaan Bytelogic. Aplikasi ini membantu **manajer, karyawan, dan klien** dalam mengelola proyek serta melakukan evaluasi kinerja karyawan berdasarkan umpan balik dari klien dan manajer.
+## 📌 Project Description
+This system is a **web-based platform** for **employee evaluation and project management** at Bytelogic. The application helps **managers, employees, and clients** manage projects and evaluate employee performance based on feedback from both clients and managers.
 
-## 🎯 Fitur Utama
+## 🎯 Key Features
 - **🔐 Authentication & Authorization**
-  - Login berbasis peran: Manager, Karyawan, dan Klien
-  - Keamanan menggunakan **JWT Authentication**
+  - Role-based login: Manager, Employee, and Client
+  - Security implemented using **JWT Authentication**
+  
 - **📊 Dashboard**
-  - Tampilan proyek yang sedang berjalan dan yang telah selesai
-  - Riwayat proyek sebelumnya
-- **📂 Manajemen Proyek**
-  - **Manager**: CRUD proyek, mengassign klien dan karyawan
-  - **Karyawan**: Update progres proyek
-  - **Klien**: Melihat progres proyek yang dipesan
-- **📑 Evaluasi Kinerja**
-  - **Klien & Manajer** dapat memberikan penilaian terhadap karyawan
-  - Penilaian menggunakan **Likert scale (1-5)**
-  - Hasil evaluasi dapat dilihat oleh **Manager & Karyawan yang dinilai**
+  - Displays ongoing and completed projects
+  - History of previous projects
 
+- **📂 Project Management**
+  - **Manager**: Create, Read, Update, Delete (CRUD) projects, assign clients and employees
+  - **Employee**: Update project progress
+  - **Client**: View progress of their ordered projects
 
-### **Backend**
+- **📑 Performance Evaluation**
+  - **Clients & Managers** can provide performance ratings for employees
+  - Evaluation uses a **Likert scale (1-5)**
+  - Evaluation results are viewable by **Managers & the evaluated Employees**
+
+---
+
+### 🛠️ Backend Tech Stack
 - **Node.js & Express.js**
-- **MongoDB** untuk database
-- JWT untuk autentikasi
-- Swagger untuk dokumentasi API
+- **MongoDB** for the database
+- **JWT** for authentication
+- **Swagger** for API documentation
 
-## 🚀 Cara Menjalankan Proyek
-### **1. Clone Repository**
-```sh
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+```bash
 git clone https://github.com/fhira21/be_bytelogic.git
-cd NAMA-REPO
-```
+cd REPO-NAME
 
 ### **2. Install Dependencies**
 #### Backend:
@@ -40,28 +46,28 @@ cd be_penilaian
 npm install
 ```
 
-### **3. Konfigurasi Environment**
-Buat file `.env` di folder backend dan isi dengan konfigurasi berikut:
+### **3. Configure Environment Variables**
+Create a .env file inside the backend folder and fill in the following configuration:
 ```
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 ```
 
-### **4. Jalankan Server Backend**
+### **4. Run The Backend Server**
 ```sh
 cd be_penilaian
 npm start
 ```
 
 
-## 📖 Dokumentasi API (Swagger)
-Setelah backend berjalan, buka di browser:
+## 📖 API Documentation (Swagger)
+Once the backend is running, Open your browser and go to:
 ```
 http://localhost:5000/api-docs
 ```
 
-## 📌 Kontributor
+## 📌 Contributors
 - **Fhira Triana Maulani**
 - **Nur Wahyu Suci Rahayu**
 
