@@ -39,7 +39,7 @@ This system is a **web-based platform** for **employee evaluation and project ma
 git clone https://github.com/fhira21/be_bytelogic.git
 cd REPO-NAME
 
-### **2. Install Dependencies**
+### 2. Install Dependencies
 #### Backend:
 ```sh
 cd be_penilaian
